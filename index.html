@@ -400,10 +400,9 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   const date_rdv = document.getElementById('date_rdv').value;
   const heure_rdv = document.getElementById('heure_rdv').value;
   const nom = document.getElementById('nom').value;
-  const telephone = document.getElementById('telephone').value;
   const email = document.getElementById('email').value;
   const capture = document.getElementById('capture_paiement').files[0];
-  if(!selectedPrestation || !date_rdv || !heure_rdv || !nom || !telephone || !email || !capture){
+  if(!selectedPrestation || !date_rdv || !heure_rdv || !nom || !email || !capture)
     alert("Merci de remplir tous les champs et d'ajouter la capture du paiement."); return;
   }
   btn.disabled = true; btn.textContent = "Envoi en cours...";
