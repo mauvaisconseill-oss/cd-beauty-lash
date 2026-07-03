@@ -1,0 +1,181 @@
+/* ===== RESET DE BASE ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f5f0e8;
+  color: #333;
+}
+
+/* ===== PAGE DE CONNEXION ===== */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f5f0e8;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.login-box h1 {
+  margin-bottom: 24px;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  background: #c9a06c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.login-box button:hover {
+  background: #b38c56;
+}
+
+.login-error {
+  color: #d33;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  min-height: 1em;
+}
+
+/* ===== PAGE ADMIN ===== */
+.admin-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-page h1 {
+  color: #c9a06c;
+  margin: 0;
+}
+
+.admin-page > p {
+  color: #777;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+.logout-btn {
+  background: #eee;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  background: #ddd;
+}
+
+/* ===== COLONNES (En attente / Acceptées / Refusées) ===== */
+.admin-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-columns h2 {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+/* ===== CARTES DE RÉSERVATION ===== */
+.reservation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.reservation-card h3 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.reservation-card p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.reservation-card a {
+  display: inline-block;
+  margin-top: 8px;
+  color: #c9a06c;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.reservation-card a:hover {
+  text-decoration: underline;
+}
+
+.reservation-card button {
+  padding: 8px 14px;
+  margin: 4px 4px 0 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.reservation-card button[onclick*="accepté"] {
+  background: #4caf50;
+  color: white;
+}
+
+.reservation-card button[onclick*="refusé"] {
+  background: #e57373;
+  color: white;
+}
+
+.delete-btn {
+  background: #eee !important;
+  color: #444 !important;
+}
+
+.delete-btn:hover {
+  background: #ddd !important;
+}
