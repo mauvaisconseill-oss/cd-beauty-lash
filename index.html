@@ -395,29 +395,18 @@ document.getElementById('heure_rdv').addEventListener('change',function(){
   lien.textContent = `Payer l'acompte de ${acompte}€ (PayPal)`;
 });
 
-document.getElementById('submit-btn').addEventListener('click', async ()=>{
-  const btn = document.getElementById('submit-btn');
-  const date_rdv = document.getElementById('date_rdv').value;
-  const heure_rdv = document.getElementById('heure_rdv').value;
-  const nom = document.getElementById('nom').value;
-  const email = document.getElementById('email').value;
-  const capture = document.getElementById('capture_paiement').files[0];
-  if(!selectedPrestation || !date_rdv || !heure_rdv || !nom || !email || !capture)
-    alert("Merci de remplir tous les champs et d'ajouter la capture du paiement."); return;
-  }
-  btn.disabled = true; btn.textContent = "Envoi en cours...";
-  try{
-  const { data: bloque, error: bErr } = await sb.from('creneaux_bloques').select('*').eq('date_rdv',date_rdv).eq('heure_rdv',heure_rdv);
-  if(bErr){ alert("Erreur vérification créneau : "+bErr.message); console.error(bErr); return; }
-  if(bloque && bloque.length>0){ alert("Ce créneau est déjà réservé."); return; }
-  const cleanName = capture.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9.]/g,"_");
-  const fileName = Date.now()+"_"+cleanName;
-  const { error: upErr } = await sb.storage.from('paiements').upload(fileName, capture);
-  if(upErr){ alert("Erreur upload : "+upErr.message); return; }
-  const { data: signed, error: sErr } = await sb.storage.from('paiements').createSignedUrl(fileName, 60*60*24*30);
-  if(sErr){ alert("Erreur génération URL : "+sErr.message); return; }
-  const acompte = creneauxNuit.includes(heure_rdv)?"20€":"10€";
-  const { error } = await sb.from('reservations').insert([{
+const { error } = await sb.from('reservations').insert([{
+  prestation: selectedPrestation,
+  technicienne: BRAND,
+  date_rdv,
+  heure_rdv,
+  nom,
+  email,
+  acompte,
+  capture_paiement: capture.name,
+  capture_url: signed.signedUrl,
+  statut: "en attente"
+}]);
     prestation:selectedPrestation, technicienne:BRAND, date_rdv, heure_rdv, nom, email,
     acompte, capture_paiement:capture.name, capture_url:signed.signedUrl, statut:"en attente"
   }]);
