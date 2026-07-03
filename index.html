@@ -418,7 +418,7 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   if(sErr){ alert("Erreur génération URL : "+sErr.message); return; }
   const acompte = creneauxNuit.includes(heure_rdv)?"20€":"10€";
   const { error } = await sb.from('reservations').insert([{
-    prestation:selectedPrestation, technicienne:BRAND, date_rdv, heure_rdv, nom, telephone, email,
+    prestation:selectedPrestation, technicienne:BRAND, date_rdv, heure_rdv, nom, email,
     acompte, capture_paiement:capture.name, capture_url:signed.signedUrl, statut:"en attente"
   }]);
   if(error){ alert("Erreur : "+error.message); console.error(error); } else { confirmation(); }
