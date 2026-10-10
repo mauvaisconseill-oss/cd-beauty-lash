@@ -236,7 +236,16 @@ body{background:#FAF7F2;}
 .booking-continue:disabled{background:#D9D0C6;color:#81766B;cursor:not-allowed;}
 #booking-form{border-top:1px solid #D7C8B8;padding-top:18px;}
 .selected-badge{background:transparent!important;border:0!important;text-align:left!important;padding:0!important;color:var(--rose-deep)!important;}
-@media(max-width:559px){.hero{padding-top:32px;}#reserver{padding:0;}.booking-actions{align-items:stretch;flex-direction:column;gap:10px}.booking-continue{width:100%;}}
+@media(max-width:559px){
+  .hero{padding-top:32px;}
+  #reserver{padding:0 4px 18px;}
+  #reserver .booking-layout,#reserver .booking-choices{display:block;}
+  #reserver .acc{padding:16px 6px;}
+  #reserver .panel{padding:8px 0 18px;}
+  #reserver .svc{padding:14px 10px;min-height:52px;}
+  .booking-actions{align-items:stretch;flex-direction:column;gap:12px;margin-top:18px;padding-top:16px;}
+  .booking-continue{width:100%;}
+}
 .topbar .brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:19px;font-weight:600;line-height:1.1;letter-spacing:0;color:var(--plum);}
 .topbar .brand img{width:38px;height:38px;object-fit:contain;mix-blend-mode:multiply;}
 .topbar .brand b{font-family:'Fraunces',serif;font-weight:600;color:var(--plum);}
@@ -414,8 +423,6 @@ body{background:#FAF7F2;}
       <div class="booking-step" id="booking-step-details">Rendez-vous</div>
       <div class="booking-step" id="booking-step-confirmation">Confirmation</div>
     </div>
-    <p class="booking-intro">Les prestations durent 1h30, sauf les créneaux à partir de 19:00 qui durent 1h. Choisissez la prestation qui vous correspond.</p>
-
     <div class="booking-layout">
       <div class="booking-choices">
     <button class="acc open"><span class="acc-copy">Extensions de cils<small>Poses personnalisées</small></span><span class="arw">⌄</span></button>
