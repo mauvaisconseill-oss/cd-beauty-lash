@@ -578,6 +578,18 @@ document.querySelectorAll('.acc').forEach(btn=>{
 
 const creneauxSoir = ['19:00','20:00','21:00'];
 const creneauxAcompteMajore = ['08:00','09:30',...creneauxSoir];
+const creneauxDisponibles = [
+  { heure: '08:00', duree: 90, label: '08:00 – 09:30 · 20€' },
+  { heure: '09:30', duree: 90, label: '09:30 – 11:00 · 20€' },
+  { heure: '11:00', duree: 90, label: '11:00 – 12:30' },
+  { heure: '14:00', duree: 90, label: '14:00 – 15:30' },
+  { heure: '15:30', duree: 90, label: '15:30 – 17:00' },
+  { heure: '17:00', duree: 90, label: '17:00 – 18:30' },
+  { heure: '19:00', duree: 60, label: '19:00 – 20:00 · 20€' },
+  { heure: '20:00', duree: 60, label: '20:00 – 21:00 · 20€' },
+  { heure: '21:00', duree: 60, label: '21:00 – 22:00 · 20€' }
+];
+const joursPlanning = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
 let selectedBase = null;
 const selectedAddons = new Set();
 let selectedPrestation = "";
@@ -658,6 +670,80 @@ document.querySelectorAll('.svc').forEach(svc=>{
 });
 updateInvoice();
 
+const dateRdvInput = document.getElementById('date_rdv');
+const heureRdvSelect = document.getElementById('heure_rdv');
+const aujourdhui = new Date();
+dateRdvInput.min = `${aujourdhui.getFullYear()}-${String(aujourdhui.getMonth() + 1).padStart(2, '0')}-${String(aujourdhui.getDate()).padStart(2, '0')}`;
+dateRdvInput.addEventListener('change', refreshAvailableTimes);
+
+function minutesDepuisMinuit(heure){
+  const [heures, minutes] = heure.split(':').map(Number);
+  return heures * 60 + minutes;
+}
+
+async function getAvailabilityForDate(date){
+  const [{ data: config, error: configError }, { data: override, error: overrideError }] = await Promise.all([
+    sb.from('planning_config').select('jours').eq('id', 1).maybeSingle(),
+    sb.from('planning_overrides').select('ouvert, debut, fin').eq('date', date).maybeSingle()
+  ]);
+  if(configError) throw new Error("Impossible de vérifier les horaires : " + configError.message);
+  if(overrideError) throw new Error("Impossible de vérifier les changements du planning : " + overrideError.message);
+  if(!config || !config.jours) throw new Error("Le planning n'est pas encore configuré.");
+
+  const jour = joursPlanning[new Date(date + 'T00:00:00').getDay()];
+  const horaires = override || config.jours[jour];
+  if(!horaires) throw new Error("Les horaires de cette journée ne sont pas configurés.");
+
+  const { data: bloques, error: bloqueError } = await sb.from('creneaux_bloques')
+    .select('heure_rdv')
+    .eq('date_rdv', date);
+  if(bloqueError) throw new Error("Impossible de vérifier les créneaux réservés : " + bloqueError.message);
+
+  return { horaires, heuresBloquees: new Set((bloques || []).map(item => item.heure_rdv)) };
+}
+
+function setHourOptions(options, message){
+  heureRdvSelect.replaceChildren(new Option(message, ''));
+  options.forEach(creneau => heureRdvSelect.add(new Option(creneau.label, creneau.heure)));
+}
+
+async function refreshAvailableTimes(){
+  const date = dateRdvInput.value;
+  heureRdvSelect.value = '';
+  updateInvoice();
+  if(!date){
+    setHourOptions(creneauxDisponibles, 'Choisir une heure');
+    heureRdvSelect.disabled = false;
+    return;
+  }
+
+  heureRdvSelect.disabled = true;
+  setHourOptions([], 'Vérification des disponibilités…');
+  try{
+    const { horaires, heuresBloquees } = await getAvailabilityForDate(date);
+    if(dateRdvInput.value !== date) return;
+    if(!horaires.ouvert){
+      setHourOptions([], 'Aucun créneau disponible (jour fermé)');
+      return;
+    }
+
+    const debut = minutesDepuisMinuit(String(horaires.debut || '00:00').slice(0, 5));
+    const fin = minutesDepuisMinuit(String(horaires.fin || '00:00').slice(0, 5));
+    const libres = creneauxDisponibles.filter(creneau => {
+      const heure = minutesDepuisMinuit(creneau.heure);
+      return heure >= debut && heure + creneau.duree <= fin && !heuresBloquees.has(creneau.heure);
+    });
+    setHourOptions(libres, libres.length ? 'Choisir une heure' : 'Aucun créneau disponible');
+  }catch(error){
+    if(dateRdvInput.value !== date) return;
+    console.error(error);
+    setHourOptions([], 'Disponibilités indisponibles');
+    alert(error.message || "Impossible de charger les disponibilités.");
+  }finally{
+    if(dateRdvInput.value === date) heureRdvSelect.disabled = false;
+  }
+}
+
 document.getElementById('heure_rdv').addEventListener('change',function(){
   const acompte = creneauxAcompteMajore.includes(this.value)?20:10;
   const lien = document.getElementById('paypal_link');
@@ -679,6 +765,20 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   }
   btn.disabled = true; btn.textContent = "Envoi en cours...";
   try{
+  const { horaires, heuresBloquees } = await getAvailabilityForDate(date_rdv);
+  const creneauChoisi = creneauxDisponibles.find(creneau => creneau.heure === heure_rdv);
+  if(!horaires.ouvert || !creneauChoisi ||
+    minutesDepuisMinuit(heure_rdv) < minutesDepuisMinuit(String(horaires.debut || '00:00').slice(0, 5)) ||
+    minutesDepuisMinuit(heure_rdv) + creneauChoisi.duree > minutesDepuisMinuit(String(horaires.fin || '00:00').slice(0, 5))){
+    alert("Ce jour ou cet horaire n'est plus disponible. Choisis un autre créneau.");
+    await refreshAvailableTimes();
+    return;
+  }
+  if(heuresBloquees.has(heure_rdv)){
+    alert("Ce créneau est déjà réservé. Choisis une autre heure.");
+    await refreshAvailableTimes();
+    return;
+  }
   const { data: bloque, error: bErr } = await sb.from('creneaux_bloques').select('*').eq('date_rdv',date_rdv).eq('heure_rdv',heure_rdv);
   if(bErr){ alert("Erreur vérification créneau : "+bErr.message); console.error(bErr); return; }
   if(bloque && bloque.length>0){ alert("Ce créneau est déjà réservé."); return; }

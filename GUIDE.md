@@ -27,14 +27,15 @@ avis clientes et réservation. Voici comment le mettre en ligne, dans l'ordre.
 
 ---
 
-## Étape 2 — Configurer Supabase (avis + portfolio + réparation du bug)
+## Étape 2 — Configurer Supabase (avis + portfolio + planning)
 
 1. Va sur **supabase.com** → ton projet → menu **SQL Editor** → **New query**.
 2. Ouvre le fichier `configuration-supabase.sql`, copie **tout** son contenu, colle-le.
 3. Clique **Run**.
 
 Ça crée la table des avis, les deux casiers de stockage (`portfolio` et `paiements`),
-et répare l'erreur « Object not found » que tu avais sur la capture de paiement.
+et les tables du planning (`planning_config` et `planning_overrides`). Si le script a
+déjà été exécuté, tu peux le relancer : il conserve les horaires existants.
 
 ---
 
@@ -63,6 +64,16 @@ et répare l'erreur « Object not found » que tu avais sur la capture de paieme
 Dans Supabase → **Authentication → Users → Add user → Create new user** :
 mets son email + un mot de passe, et **coche “Auto Confirm User”**.
 C'est ce couple email/mot de passe qu'elle tapera sur la page admin.
+
+Dans **Espace gestion → Gérer mon planning**, elle peut consulter les rendez-vous du
+mois et leurs heures, définir ses horaires habituels, fermer un jour de la semaine,
+ou modifier une date précise puis rétablir son horaire habituel. Les horaires enregistrés
+sont appliqués au formulaire public : seuls les créneaux disponibles sont proposés.
+
+Les horaires de départ reprennent l'exemple fourni : lundi, mardi, jeudi et vendredi
+de 15 h 30 à 18 h, mercredi de 12 h à 18 h, samedi de 13 h à 18 h et dimanche de
+11 h à 18 h. Le script actualise uniquement l'ancien planning de démonstration ; un
+planning déjà personnalisé reste inchangé.
 
 ---
 

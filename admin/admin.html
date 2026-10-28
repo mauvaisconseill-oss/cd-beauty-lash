@@ -2,30 +2,132 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf8f4">
   <title>Admin - CD Beauty Lash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-
   <section class="login-page" id="login-page">
-    <div class="login-box">
-      <h1>Connexion Admin</h1>
-      <input type="email" id="login-email" placeholder="Email">
-      <input type="password" id="login-password" placeholder="Mot de passe">
-      <button id="login-btn">Se connecter</button>
-      <p id="login-error" class="login-error"></p>
-    </div>
+    <form class="login-box" id="login-form">
+      <p class="eyebrow">CD Beauty Lash</p>
+      <h1>Connexion admin</h1>
+      <label for="login-email">Adresse e-mail</label>
+      <input type="email" id="login-email" placeholder="nom@exemple.fr" autocomplete="username" required>
+      <label for="login-password">Mot de passe</label>
+      <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="current-password" required>
+      <button id="login-btn" type="submit">Se connecter</button>
+      <p id="login-error" class="login-error" role="alert"></p>
+    </form>
   </section>
 
-  <section class="admin-page" id="admin-page" style="display:none;">
-    <div class="admin-header">
-      <h1>Admin CD Beauty Lash</h1>
-      <button id="logout-btn" class="logout-btn">Déconnexion</button>
-    </div>
-    <p>Gestion des réservations</p>
+  <main class="admin-page" id="admin-page" hidden>
+    <header class="admin-header">
+      <div class="brand-lockup">
+        <img class="brand-logo" src="../logo-circle.png" alt="Logo CD Beauty Lash">
+        <div>
+          <p class="eyebrow">CD Beauty Lash <span class="brand-divider">·</span> Espace privé</p>
+          <h1>Administration</h1>
+          <p class="header-subtitle">Le joli coin pour gérer ton activité.</p>
+        </div>
+      </div>
+      <button id="logout-btn" class="button button-outline logout-button" type="button">Se déconnecter <span aria-hidden="true">↗</span></button>
+    </header>
 
-    <div id="reservations-list"></div>
-  </section>
+    <nav class="main-tabs" aria-label="Sections de gestion">
+      <button class="main-tab active" type="button" data-view="reservations" aria-selected="true">Réservations</button>
+      <button class="main-tab" type="button" data-view="planning" aria-selected="false">Gérer mon planning</button>
+    </nav>
+
+    <section class="admin-view" id="reservations-view">
+      <div class="reservation-toolbar">
+        <div class="reservation-filters" aria-label="Filtrer les réservations">
+          <button class="filter-chip active" type="button" data-filter="en attente" aria-pressed="true">En attente <span id="count-pending">0</span></button>
+          <button class="filter-chip" type="button" data-filter="accepté" aria-pressed="false">Acceptées <span id="count-accepted">0</span></button>
+          <button class="filter-chip" type="button" data-filter="refusé" aria-pressed="false">Refusées <span id="count-refused">0</span></button>
+        </div>
+        <button id="refresh-btn" class="button button-outline" type="button">Actualiser</button>
+      </div>
+      <div id="reservations-list" aria-live="polite"></div>
+    </section>
+
+    <section class="admin-view" id="planning-view" hidden>
+      <div class="planning-intro">
+        <div>
+          <p class="eyebrow">Tes rendez-vous, à ton rythme</p>
+          <h2>Mon planning<span class="title-period">.</span></h2>
+          <p class="header-subtitle">Une vue claire de tes rendez-vous et des jours où tu es disponible.</p>
+        </div>
+        <img class="planning-flower" src="../logo-circle.png" alt="Logo CD Beauty Lash">
+      </div>
+      <p id="planning-message" class="status-message" role="status"></p>
+
+      <section class="panel calendar-panel">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Ton agenda</p>
+            <h3>Rendez-vous du mois</h3>
+            <p class="panel-copy">Sélectionne un jour pour voir les rendez-vous et leurs horaires.</p>
+          </div>
+        </div>
+        <div class="month-nav">
+          <button id="month-prev-btn" class="button button-outline" type="button" aria-label="Mois précédent">←</button>
+          <h3 id="month-label"></h3>
+          <button id="month-next-btn" class="button button-outline" type="button" aria-label="Mois suivant">→</button>
+        </div>
+        <button id="month-today-btn" class="text-button month-today" type="button">Revenir à ce mois</button>
+        <div class="calendar-legend">
+          <span><i class="legend-dot pending"></i> En attente</span>
+          <span><i class="legend-dot accepted"></i> Accepté</span>
+        </div>
+        <div id="calendar-grid" class="calendar-grid" aria-label="Calendrier des rendez-vous"></div>
+        <section id="day-detail" class="day-detail" hidden>
+          <h3 id="day-detail-title"></h3>
+          <div id="day-detail-list"></div>
+        </section>
+      </section>
+
+      <section class="panel schedule-panel">
+        <div class="schedule-heading">
+          <span class="section-stamp" aria-hidden="true">01</span>
+          <div>
+            <p class="eyebrow">Tes repères chaque semaine</p>
+            <h3>Horaires habituels</h3>
+            <p class="panel-copy">Tes horaires se répètent toutes les semaines. Tu peux fermer un jour ou ajuster tes heures quand tu veux.</p>
+          </div>
+        </div>
+        <div id="jours-list"></div>
+        <div class="schedule-footer">
+          <span class="schedule-footnote"><span aria-hidden="true">✦</span> Ces horaires seront proposés aux clientes.</span>
+          <button id="save-horaires-btn" class="button button-primary" type="button"><span aria-hidden="true">✓</span> Enregistrer mes horaires</button>
+        </div>
+      </section>
+
+      <section class="panel week-panel">
+        <div class="section-heading compact schedule-heading">
+          <div>
+            <p class="eyebrow">Pour les petits changements</p>
+            <h3>Une exception cette semaine</h3>
+            <p class="panel-copy">Tu as un imprévu ? Modifie un jour ici sans changer tes horaires habituels.</p>
+          </div>
+          <span class="section-stamp" aria-hidden="true">02</span>
+        </div>
+        <div class="week-nav">
+          <button id="week-prev-btn" class="button button-outline" type="button">← Semaine précédente</button>
+          <div class="week-label">
+            <strong id="week-label"></strong>
+            <span id="week-sublabel"></span>
+            <button id="week-today-btn" class="text-button" type="button">Revenir à cette semaine</button>
+          </div>
+          <button id="week-next-btn" class="button button-outline" type="button">Semaine suivante →</button>
+        </div>
+        <div id="week-days-list"></div>
+      </section>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
