@@ -50,18 +50,36 @@ loginForm.addEventListener("submit", async event => {
   loginError.textContent = "";
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
+  const submitButton = document.getElementById("login-btn");
 
   if (!email || !password) {
     loginError.textContent = "Merci de remplir l'e-mail et le mot de passe.";
     return;
   }
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) {
-    loginError.textContent = "E-mail ou mot de passe incorrect.";
-    return;
+  submitButton.disabled = true;
+  submitButton.textContent = "Connexion en cours…";
+  try {
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.code === "email_not_confirmed") {
+        loginError.textContent = "Ce compte n'est pas confirmé. Dans Supabase → Authentication → Users, confirme l'adresse e-mail du compte.";
+      } else if (error.code === "invalid_credentials" || error.message === "Invalid login credentials") {
+        loginError.textContent = "Identifiants non reconnus. Vérifie que le compte a été créé dans le projet Supabase CD Beauty Lash (zvkoxndvhdjptezakois) et que le mot de passe est correct.";
+      } else {
+        console.error("Connexion Supabase refusée.", error);
+        loginError.textContent = "Connexion refusée par Supabase. Vérifie l'état du compte dans Authentication → Users.";
+      }
+      return;
+    }
+    showAdmin();
+  } catch (error) {
+    console.error("Impossible de joindre le service de connexion Supabase.", error);
+    loginError.textContent = "Le service de connexion est momentanément inaccessible. Vérifie ta connexion Internet puis réessaie.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Se connecter";
   }
-  showAdmin();
 });
 
 document.getElementById("logout-btn").addEventListener("click", async () => {

@@ -4,7 +4,7 @@
   background: #fbf8f4;
   font-synthesis: none;
   --rose: #b9824d;
-  --rose-deep: #80552f;
+  --rose-deep: #67432e;
   --rose-soft: #ead8c4;
   --muted: #746d72;
   --blush: #f8f3ec;
@@ -72,6 +72,8 @@ button { cursor: pointer; }
 .login-box button { width: 100%; margin-top: 20px; padding: 12px; border-radius: 10px; font-weight: 700; }
 .login-box button:hover, .button-primary:hover { background: var(--rose-deep); border-color: var(--rose-deep); }
 .login-error { min-height: 20px; margin: 12px 0 0; color: #b54444; font-size: 13px; }
+.login-hint { margin: 16px 0 0; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.6; }
+.login-hint strong { color: var(--rose-deep); font-weight: 600; }
 
 .admin-page { width: min(1120px, 100%); margin: 0 auto; padding: 34px 24px 70px; }
 .admin-header, .section-heading, .week-nav, .month-nav {
@@ -232,14 +234,14 @@ button { cursor: pointer; }
 .main-tabs { width: fit-content; gap: 7px; padding: 5px; overflow: visible; border: 1px solid #efe8e0; border-radius: 999px; background: rgba(255,255,255,.78); box-shadow: 0 3px 14px rgba(63, 47, 42, .04); }
 .main-tab { min-width: 130px; padding: 11px 20px; border: 0; border-radius: 999px; font-size: 13px; }
 .main-tab:hover, .main-tab.active { color: #fff; }
-.main-tab.active { border: 0; background: #80552f; box-shadow: 0 4px 10px rgba(128, 85, 47, .2); }
+.main-tab.active { border: 0; background: #67432e; box-shadow: 0 4px 10px rgba(103, 67, 46, .18); }
 .admin-view { padding-top: 28px; }
-.planning-intro { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 23px; padding: 19px 24px; border: 1px solid #f0e2d5; border-radius: 18px; background: linear-gradient(110deg, #fff 0%, #fff 63%, #fbefe4 100%); }
+.planning-intro { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 23px; padding: 19px 24px; border: 1px solid #f2e8de; border-radius: 18px; background: linear-gradient(110deg, #fff 0%, #fff 82%, #fdf9f5 100%); }
 .planning-intro h2 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: 32px; font-weight: 500; letter-spacing: -.02em; }
 .planning-intro .header-subtitle { margin: 3px 0 0; }
 .planning-intro .eyebrow { margin-bottom: 1px; }
 .title-period { color: var(--rose); }
-.planning-flower { display: block; width: 58px; height: 58px; flex: 0 0 auto; border: 2px solid #fff; border-radius: 50%; background: #fff; object-fit: cover; box-shadow: 0 4px 13px rgba(77, 52, 48, .12); }
+.planning-flower { display: block; width: 58px; height: 58px; flex: 0 0 auto; border: 0; border-radius: 50%; background: transparent; object-fit: cover; mix-blend-mode: multiply; }
 .status-message { margin: -7px 0 14px; padding: 10px 14px; border: 1px solid #f0dfc8; border-radius: 10px; background: #fff8ec; color: #80552f; font-size: 12px; }
 .panel { margin-bottom: 20px; padding: 25px; border-color: #eee5dc; border-radius: 18px; box-shadow: 0 7px 24px rgba(66, 47, 39, .045); }
 .panel-copy { max-width: 630px; margin: 5px 0 0; font-size: 12px; }
@@ -286,7 +288,7 @@ button { cursor: pointer; }
 .schedule-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 15px; padding-top: 17px; border-top: 1px solid #f1eae4; }
 .schedule-footnote { color: #927e76; font-size: 11px; }
 .schedule-footnote span { margin-right: 5px; color: var(--rose); }
-.schedule-footer .button-primary { min-height: 43px; margin: 0; border-color: #80552f; border-radius: 10px; background: #80552f; box-shadow: 0 4px 11px rgba(128, 85, 47, .16); }
+.schedule-footer .button-primary { min-height: 43px; margin: 0; border-color: #67432e; border-radius: 10px; background: #67432e; box-shadow: 0 4px 11px rgba(103, 67, 46, .14); }
 .schedule-footer .button-primary span { margin-right: 6px; }
 .week-panel .schedule-heading { justify-content: space-between; }
 .week-panel .section-stamp { order: 2; }
