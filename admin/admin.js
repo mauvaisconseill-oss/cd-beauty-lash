@@ -15,6 +15,7 @@ const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
 const reservationsList = document.getElementById("reservations-list");
 const planningMessage = document.getElementById("planning-message");
+const confirmationToast = document.getElementById("confirmation-toast");
 const reservationMessage = document.getElementById("reservation-message");
 const reservationMessageIcon = document.getElementById("reservation-message-icon");
 const reservationMessageTitle = document.getElementById("reservation-message-title");
@@ -50,6 +51,7 @@ let semaineAffichee = getLundiDeLaSemaine(new Date());
 let moisAffiche = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let selectedCalendarDate = "";
 let reservationMessageTimer;
+let confirmationToastTimer;
 
 loginForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -576,7 +578,11 @@ async function saveHoraires() {
     return;
   }
   horairesActuels = nouveauxJours;
-  planningMessage.textContent = "Horaires habituels enregistrés.";
+  clearTimeout(confirmationToastTimer);
+  confirmationToast.hidden = false;
+  confirmationToastTimer = setTimeout(() => {
+    confirmationToast.hidden = true;
+  }, 2000);
   await loadSemaine();
 }
 

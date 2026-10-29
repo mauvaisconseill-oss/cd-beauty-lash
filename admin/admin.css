@@ -176,6 +176,31 @@ button { cursor: pointer; }
 .reservation-message-actions:empty { display: none; }
 .reservation-message-actions .button { min-height: 34px; padding: 6px 12px; }
 @keyframes reservation-message-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.confirmation-toast {
+  position: fixed;
+  z-index: 1000;
+  right: 20px;
+  bottom: 24px;
+  left: 20px;
+  display: flex;
+  width: fit-content;
+  max-width: min(440px, calc(100vw - 40px));
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border: 1px solid #806047;
+  border-radius: 14px;
+  background: rgba(103, 67, 46, .78);
+  box-shadow: 0 10px 30px rgba(48, 34, 26, .24);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: confirmation-toast-enter .2s ease-out;
+}
+.confirmation-toast strong { font-family: "Fraunces", Georgia, serif; font-size: 16px; font-weight: 500; }
+.confirmation-toast-icon { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 17px; }
+@keyframes confirmation-toast-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 .panel { margin-bottom: 22px; padding: 24px; }
 .panel > h3, .section-heading.compact h3, .month-nav h3 { font-size: 22px; }
