@@ -309,6 +309,9 @@ body{background:#FAF7F2;}
   .pol-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
   .card,.pol{padding:28px;}
 }
+@keyframes page-enter{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.topbar{animation:page-enter .55s ease-out both;}
+main.app{animation:page-enter .7s .08s ease-out both;}
 </style>
 </head>
 <body>
