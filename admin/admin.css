@@ -137,6 +137,45 @@ button { cursor: pointer; }
 .button-refuse, .button-delete { border: 1px solid #f0d7d4; background: #fff8f7; color: #a64e47; }
 .button-refuse:hover, .button-delete:hover { background: #fdf0ee; }
 .empty-state { padding: 20px; border: 1px dashed var(--rose-soft); border-radius: 12px; color: var(--muted); font-size: 13px; text-align: center; }
+.reservation-message {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  max-width: 680px;
+  margin: 0 0 18px;
+  padding: 15px 18px;
+  border: 1px solid #e8d8c8;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff 0%, #fffaf5 100%);
+  box-shadow: 0 6px 20px rgba(66, 47, 39, .07);
+  animation: reservation-message-enter .2s ease-out;
+}
+.reservation-message-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #f6eadf;
+  color: var(--rose-deep);
+  font-size: 17px;
+}
+.reservation-message-content { min-width: 0; padding-top: 1px; }
+.reservation-message-content strong { color: #49363a; font-family: "Fraunces", Georgia, serif; font-size: 16px; font-weight: 500; }
+.reservation-message-content p { margin: 3px 0 0; color: #746d72; font-size: 13px; overflow-wrap: anywhere; }
+.reservation-message.success { border-color: #d7e6d3; background: linear-gradient(110deg, #fff 0%, #f7fbf5 100%); }
+.reservation-message.success .reservation-message-icon { background: #eaf3e7; color: #557451; }
+.reservation-message.error { border-color: #efd4cf; background: linear-gradient(110deg, #fff 0%, #fff8f6 100%); }
+.reservation-message.error .reservation-message-icon { background: #fbe9e5; color: #a64e47; }
+.reservation-message.warning { border-color: #ecdcbc; background: linear-gradient(110deg, #fff 0%, #fffaf0 100%); }
+.reservation-message.warning .reservation-message-icon { background: #f8efd9; color: #80552f; }
+.reservation-message.confirmation { border-color: #ead9c7; background: linear-gradient(110deg, #fff 0%, #fffaf5 100%); }
+.reservation-message-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.reservation-message-actions:empty { display: none; }
+.reservation-message-actions .button { min-height: 34px; padding: 6px 12px; }
+@keyframes reservation-message-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
 .panel { margin-bottom: 22px; padding: 24px; }
 .panel > h3, .section-heading.compact h3, .month-nav h3 { font-size: 22px; }

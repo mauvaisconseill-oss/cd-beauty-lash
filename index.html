@@ -120,8 +120,8 @@ footer a.admin{color:var(--muted);text-decoration:underline;font-size:12px;}
 .v-head{text-align:center;margin:0 0 22px;}
 .v-head .small{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--rose);}
 .v-head .big{font-family:'Fraunces',serif;font-size:32px;font-weight:600;line-height:1;margin-top:4px;color:var(--plum);}
-.univers{display:flex;flex-direction:column;align-items:center;gap:22px;}
-.univers .photo{width:auto;max-width:220px;height:auto;display:block;border-radius:18px;border:3px solid #fff;box-shadow:var(--shadow);}
+.univers{display:block;}
+.univers .texte{max-width:780px;margin:0 auto;}
 .univers .role-arc{font-family:'Fraunces',serif;font-style:italic;color:var(--rose-deep);font-size:15px;margin-bottom:-8px;}
 .univers .texte p{color:#5a4636;text-align:center;}
 .grid2{display:grid;grid-template-columns:1fr;gap:14px;}
@@ -135,7 +135,7 @@ footer a.admin{color:var(--muted);text-decoration:underline;font-size:12px;}
 .pol h4{font-family:'Fraunces',serif;font-size:15px;letter-spacing:.5px;color:var(--rose-deep);margin-bottom:10px;text-transform:uppercase;}
 .pol p{font-size:13px;color:#5a4636;margin-bottom:8px;line-height:1.5;}
 .pol p:last-child{margin-bottom:0;}
-@media (min-width:560px){.univers{flex-direction:row;align-items:flex-start;text-align:left;}.univers .texte p{text-align:left;}.grid2{grid-template-columns:1fr 1fr;}.pol-grid{grid-template-columns:1fr 1fr;}}
+@media (min-width:560px){.grid2{grid-template-columns:1fr 1fr;}.pol-grid{grid-template-columns:1fr 1fr;}}
 
 h1,h2,h3,h4,.brand,.title,.avis-head .big,.v-head .big,.univers .role-arc,.mini-title,.mini-title b,.confirmation-card h2{font-family:'DM Sans',sans-serif!important;}
 .brand,.title,.v-head .big,.mini-title,.mini-title b{letter-spacing:0;}
@@ -268,9 +268,7 @@ body{background:#FAF7F2;}
   main.app>section:nth-of-type(2){grid-column:1;grid-row:3;}
   main.app>section:nth-of-type(3){grid-column:2;grid-row:3/span 2;}
   main.app>section:nth-of-type(4){grid-column:1;grid-row:4;}
-  #apropos .card{padding:30px;background:#FBF8F3;border-color:#E5DACE;}
-  .univers{gap:32px;}
-  .univers .photo{max-width:280px;}
+  #apropos .card{padding:30px;background:#F8F4EE;border-color:#E5DACE;}
   .grid2{gap:18px;}
   .card,.pol,.avis-item{background:#FBF8F3;border-color:#E5DACE;}
   .card{padding:26px;}
@@ -309,6 +307,7 @@ body{background:#FAF7F2;}
   .pol-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
   .card,.pol{padding:28px;}
 }
+#apropos .card{border:0;border-radius:0;background:transparent;box-shadow:none;}
 @keyframes page-enter{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .topbar{animation:page-enter .55s ease-out both;}
 main.app{animation:page-enter .7s .08s ease-out both;}
@@ -348,9 +347,6 @@ main.app{animation:page-enter .7s .08s ease-out both;}
     <div class="v-head"><span class="small">L'univers</span><span class="big">CD Beauty Lash</span></div>
     <div class="card">
       <div class="univers">
-        <div style="text-align:center;">
-          <img src="6.png" alt="Lash technicienne" class="photo" onerror="this.style.display='none'">
-        </div>
         <div class="texte">
           <p>CD Beauty Lash, c'est un espace dédié à la mise en beauté du regard. Situé à Rosny-sous-Bois, je propose des prestations sur-mesure pour sublimer vos cils avec finesse et élégance.</p>
           <p>Merci de bien vouloir confirmer votre rendez-vous la veille. Dans le cas contraire, je me réserve le droit de l'annuler.</p>

@@ -15,6 +15,11 @@ const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
 const reservationsList = document.getElementById("reservations-list");
 const planningMessage = document.getElementById("planning-message");
+const reservationMessage = document.getElementById("reservation-message");
+const reservationMessageIcon = document.getElementById("reservation-message-icon");
+const reservationMessageTitle = document.getElementById("reservation-message-title");
+const reservationMessageDescription = document.getElementById("reservation-message-description");
+const reservationMessageActions = document.getElementById("reservation-message-actions");
 
 const JOURS_SEMAINE = [
   { key: "lundi", label: "Lundi" },
@@ -44,6 +49,7 @@ let currentView = "reservations";
 let semaineAffichee = getLundiDeLaSemaine(new Date());
 let moisAffiche = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let selectedCalendarDate = "";
+let reservationMessageTimer;
 
 loginForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -285,10 +291,34 @@ function createActionButton(label, className, action) {
   return button;
 }
 
+function showReservationMessage(title, description, type = "success", actions = []) {
+  clearTimeout(reservationMessageTimer);
+  reservationMessage.className = "reservation-message " + type;
+  reservationMessageTitle.textContent = title;
+  reservationMessageDescription.textContent = description;
+  reservationMessageIcon.textContent = type === "success" ? "✓" : type === "error" ? "!" : "✦";
+  reservationMessageActions.replaceChildren(...actions);
+  reservationMessage.hidden = false;
+
+  if (type === "error") {
+    reservationMessage.setAttribute("role", "alert");
+    reservationMessage.setAttribute("aria-live", "assertive");
+  } else {
+    reservationMessage.setAttribute("role", "status");
+    reservationMessage.setAttribute("aria-live", "polite");
+  }
+
+  if (!actions.length) {
+    reservationMessageTimer = setTimeout(() => {
+      reservationMessage.hidden = true;
+    }, 7000);
+  }
+}
+
 async function updateStatus(id, statut) {
   const reservation = reservations.find(item => String(item.id) === String(id));
   if (!reservation) {
-    alert("Cette réservation n'est plus disponible. Actualise la page.");
+    showReservationMessage("Cette réservation n’est plus disponible", "Actualise la page avant de réessayer.", "error");
     return;
   }
 
@@ -301,7 +331,7 @@ async function updateStatus(id, statut) {
       .eq("heure_rdv", reservation.heure_rdv)
       .limit(1);
     if (checkError) {
-      alert("Impossible de vérifier le créneau : " + checkError.message);
+      showReservationMessage("Impossible de vérifier le créneau", checkError.message, "error");
       return;
     }
 
@@ -311,7 +341,7 @@ async function updateStatus(id, statut) {
         heure_rdv: reservation.heure_rdv
       });
       if (insertError) {
-        alert("Impossible de bloquer le créneau : " + insertError.message);
+        showReservationMessage("Impossible de bloquer le créneau", insertError.message, "error");
         return;
       }
       createdBlockedSlot = true;
@@ -332,11 +362,12 @@ async function updateStatus(id, statut) {
         .eq("heure_rdv", reservation.heure_rdv);
       if (rollbackError) console.error("Impossible de libérer le créneau après l'échec du statut.", rollbackError);
     }
-    alert("Erreur lors de la mise à jour du statut : " + error.message);
+    showReservationMessage("Le statut n’a pas pu être mis à jour", error.message, "error");
     return;
   }
 
   const templateId = statut === "accepté" ? TEMPLATE_ACCEPTE : TEMPLATE_REFUSE;
+  let emailSent = false;
   try {
     await emailjs.send(EMAILJS_SERVICE_ID, templateId, {
       nom: reservation.nom,
@@ -345,23 +376,51 @@ async function updateStatus(id, statut) {
       heure: reservation.heure_rdv,
       prestation: reservation.prestation
     });
-    alert("Statut mis à jour et e-mail envoyé.");
+    emailSent = true;
   } catch (mailError) {
     console.error("E-mail de réservation non envoyé.", mailError);
-    alert("Le statut a été mis à jour, mais l'e-mail n'a pas pu être envoyé.");
   }
+
   await refreshAllData();
+  const customer = reservation.nom ? ` de ${reservation.nom}` : "";
+  if (emailSent) {
+    showReservationMessage(
+      statut === "accepté" ? "Rendez-vous accepté" : "Demande refusée",
+      statut === "accepté"
+        ? `Le rendez-vous${customer} a bien été accepté. L’e-mail de confirmation a été envoyé.`
+        : `La demande${customer} a bien été refusée. L’e-mail a été envoyé.`,
+      "success"
+    );
+  } else {
+    showReservationMessage(
+      statut === "accepté" ? "Rendez-vous accepté" : "Demande refusée",
+      `Le statut${customer} a été mis à jour, mais l’e-mail n’a pas pu être envoyé.`,
+      "warning"
+    );
+  }
 }
 
-async function deleteReservation(reservation) {
-  if (!confirm("Supprimer définitivement cette réservation ?")) return;
+function deleteReservation(reservation) {
+  const cancelButton = createActionButton("Annuler", "button-outline", () => {
+    reservationMessage.hidden = true;
+  });
+  const confirmButton = createActionButton("Supprimer", "button-delete", () => removeReservation(reservation));
+  showReservationMessage(
+    "Supprimer cette réservation ?",
+    `La demande de ${reservation.nom || "cette cliente"} sera supprimée définitivement.`,
+    "confirmation",
+    [cancelButton, confirmButton]
+  );
+}
 
+async function removeReservation(reservation) {
+  reservationMessageActions.querySelectorAll("button").forEach(button => { button.disabled = true; });
   const { error } = await supabaseClient
     .from("reservations")
     .delete()
     .eq("id", reservation.id);
   if (error) {
-    alert("Erreur lors de la suppression : " + error.message);
+    showReservationMessage("La réservation n’a pas pu être supprimée", error.message, "error");
     return;
   }
 
@@ -372,12 +431,21 @@ async function deleteReservation(reservation) {
       .eq("date_rdv", reservation.date_rdv)
       .eq("heure_rdv", reservation.heure_rdv);
     if (releaseError) {
-      alert("La réservation est supprimée, mais le créneau n'a pas pu être libéré : " + releaseError.message);
       await refreshAllData();
+      showReservationMessage(
+        "Réservation supprimée avec un avertissement",
+        `Le créneau n’a pas pu être libéré : ${releaseError.message}`,
+        "warning"
+      );
       return;
     }
   }
   await refreshAllData();
+  showReservationMessage(
+    "Réservation supprimée",
+    `La demande de ${reservation.nom || "la cliente"} a bien été supprimée.`,
+    "success"
+  );
 }
 
 function safeHttpsUrl(value) {

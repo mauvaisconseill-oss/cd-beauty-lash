@@ -52,6 +52,14 @@
         </div>
         <button id="refresh-btn" class="button button-outline" type="button">Actualiser</button>
       </div>
+      <div id="reservation-message" class="reservation-message" role="status" aria-live="polite" hidden>
+        <span id="reservation-message-icon" class="reservation-message-icon" aria-hidden="true">✦</span>
+        <div class="reservation-message-content">
+          <strong id="reservation-message-title"></strong>
+          <p id="reservation-message-description"></p>
+          <div id="reservation-message-actions" class="reservation-message-actions"></div>
+        </div>
+      </div>
       <div id="reservations-list" aria-live="polite"></div>
     </section>
 
