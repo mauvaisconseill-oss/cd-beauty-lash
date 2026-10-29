@@ -99,6 +99,12 @@ label.field{display:block;font-weight:600;font-size:13px;color:var(--rose-deep);
 .selected-badge{background:var(--rose-soft);border-radius:12px;padding:12px 15px;margin-bottom:14px;font-size:14px;font-weight:600;color:var(--rose-deep);text-align:center;}
 .upload-box{display:block;border:2px dashed var(--rose);border-radius:14px;padding:16px;text-align:center;background:var(--blush);margin-bottom:12px;font-size:14px;color:var(--rose-deep);font-weight:600;cursor:pointer;}
 .upload-box input{margin-top:10px;border:none;background:transparent;padding:0;}
+.refill-photo-fields[hidden]{display:none!important;}
+.refill-photo-fields{margin:14px 0;}
+.refill-photo-notice{margin:0 0 10px;padding:13px 15px;border:1px solid #D9CABB;background:#F8F4EE;color:#51483F;font-size:13px;line-height:1.55;}
+.refill-photo-notice strong{display:block;margin-bottom:3px;color:var(--rose-deep);}
+.refill-confirmation{display:flex;align-items:flex-start;gap:9px;margin:0 0 14px;color:#51483F;font-size:12px;line-height:1.5;cursor:pointer;}
+#reserver .refill-confirmation input[type="checkbox"]{width:17px;flex:0 0 17px;margin:2px 0 0;accent-color:var(--rose-deep);}
 
 footer{text-align:center;margin-top:50px;color:var(--muted);font-size:13px;}
 footer .socials{margin-bottom:14px;}
@@ -110,6 +116,15 @@ footer a.admin{color:var(--muted);text-decoration:underline;font-size:12px;}
 .confirmation-card h2{font-family:'Fraunces',serif;font-size:24px;margin-bottom:10px;}
 .confirmation-card p{color:#5a3b48;font-size:14px;margin-bottom:10px;}
 .confirmation-close-btn{margin-top:8px;background:var(--rose);color:#fff;border:none;padding:12px 26px;border-radius:12px;font-weight:600;cursor:pointer;}
+.booking-message-dialog{position:fixed;inset:0;width:min(420px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;padding:30px;border:1px solid #E5D8C9;border-radius:18px;background:linear-gradient(145deg,#fff 0%,#FBF8F3 100%);box-shadow:0 24px 70px rgba(48,41,35,.24);color:var(--plum);text-align:center;}
+.booking-message-dialog::backdrop{background:rgba(48,41,35,.48);backdrop-filter:blur(3px);}
+.booking-message-icon{display:grid;width:52px;height:52px;margin:0 auto 15px;place-items:center;border:1px solid #E8D9C7;border-radius:50%;background:#F5EBDD;color:var(--rose-deep);font-size:23px;}
+.booking-message-dialog.error .booking-message-icon{background:#F8EAE5;border-color:#EED5CB;color:#9B5746;}
+.booking-message-dialog h2{margin:0 0 8px;font-family:'Fraunces',serif!important;font-size:25px;font-weight:500;}
+.booking-message-dialog p{margin:0;color:#70665C;font-size:14px;line-height:1.6;overflow-wrap:anywhere;}
+.booking-message-dialog .confirmation-close-btn{min-width:130px;margin-top:22px;border-radius:8px;background:#302923;color:#FBF8F3;}
+.booking-message-dialog .confirmation-close-btn:hover{background:#514236;}
+@media(max-width:559px){.booking-message-dialog{padding:26px 20px;}}
 
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease;}
 .reveal.in{opacity:1;transform:none;}
@@ -487,6 +502,17 @@ main.app{animation:page-enter .7s .08s ease-out both;}
         <input type="file" id="capture_paiement" accept="image/*">
       </label>
 
+      <div id="refill-photo-fields" class="refill-photo-fields" hidden>
+        <p class="refill-photo-notice"><strong>Photo obligatoire pour un remplissage</strong>Ajoute une photo nette de tes cils actuels. Un remplissage est possible uniquement s’il reste au moins 50 % de tes extensions. Si tu en as moins, choisis une pose complète.</p>
+        <label class="upload-box" for="photo-remplissage">📎 Ajouter une photo de mes cils
+          <input type="file" id="photo-remplissage" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
+        </label>
+        <label class="refill-confirmation">
+          <input type="checkbox" id="confirm-cils-restants">
+          <span>Je confirme qu’il me reste au moins 50 % de mes extensions de cils.</span>
+        </label>
+      </div>
+
       <button class="btn-rose" id="submit-btn">Envoyer ma demande</button>
     </div>
       </div>
@@ -502,6 +528,13 @@ main.app{animation:page-enter .7s .08s ease-out both;}
       </aside>
     </div>
   </section>
+
+  <dialog id="booking-message-dialog" class="booking-message-dialog" aria-labelledby="booking-message-title" aria-describedby="booking-message-description">
+    <span id="booking-message-icon" class="booking-message-icon" aria-hidden="true">!</span>
+    <h2 id="booking-message-title"></h2>
+    <p id="booking-message-description"></p>
+    <button id="booking-message-close" class="confirmation-close-btn" type="button">Compris</button>
+  </dialog>
 
   <section id="avis" class="reveal">
     <div class="eyebrow">Avis clientes</div>
@@ -599,6 +632,18 @@ const invoiceTotal = document.getElementById('invoice-total');
 const invoiceDeposit = document.getElementById('invoice-deposit');
 const invoiceDepositDetail = document.getElementById('invoice-deposit-detail');
 const invoiceBalance = document.getElementById('invoice-balance');
+const refillPhotoFields = document.getElementById('refill-photo-fields');
+const refillPhotoInput = document.getElementById('photo-remplissage');
+const refillConfirmationInput = document.getElementById('confirm-cils-restants');
+const bookingMessageDialog = document.getElementById('booking-message-dialog');
+function showBookingMessage(title, description, type = 'error'){
+  document.getElementById('booking-message-title').textContent = title;
+  document.getElementById('booking-message-description').textContent = description;
+  document.getElementById('booking-message-icon').textContent = type === 'error' ? '!' : '✦';
+  bookingMessageDialog.className = `booking-message-dialog ${type}`;
+  if(!bookingMessageDialog.open) bookingMessageDialog.showModal();
+}
+document.getElementById('booking-message-close').addEventListener('click',()=>bookingMessageDialog.close());
 function updateInvoice(){
   const addons = [...selectedAddons].map(svc=>({
     name:svc.querySelector('span:first-child').textContent.trim(),
@@ -634,6 +679,14 @@ function updateInvoice(){
   document.getElementById('booking-hint').textContent = selectedBase
     ? services.map(service=>service.name).join(' + ')
     : "Choisissez une prestation principale pour continuer.";
+  const isRefill = Boolean(selectedBase && selectedBase.name.startsWith('Remplissage '));
+  refillPhotoFields.hidden = !isRefill;
+  refillPhotoInput.required = isRefill;
+  refillConfirmationInput.required = isRefill;
+  if(!isRefill){
+    refillPhotoInput.value = '';
+    refillConfirmationInput.checked = false;
+  }
   continueBooking.disabled = !selectedBase;
 }
 continueBooking.addEventListener('click',()=>{
@@ -742,7 +795,7 @@ async function refreshAvailableTimes(){
     if(dateRdvInput.value !== date) return;
     console.error(error);
     setHourOptions([], 'Disponibilités indisponibles');
-    alert(error.message || "Impossible de charger les disponibilités.");
+    showBookingMessage("Créneaux indisponibles", error.message || "Impossible de charger les disponibilités.");
   }finally{
     if(dateRdvInput.value === date) heureRdvSelect.disabled = false;
   }
@@ -764,8 +817,19 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   const telephone = document.getElementById('telephone').value;
   const email = document.getElementById('email').value;
   const capture = document.getElementById('capture_paiement').files[0];
+  const isRefill = Boolean(selectedBase && selectedBase.name.startsWith('Remplissage '));
+  const refillPhoto = refillPhotoInput.files[0];
   if(!selectedPrestation || !date_rdv || !heure_rdv || !nom || !telephone || !email || !capture){
-    alert("Merci de remplir tous les champs et d'ajouter la capture du paiement."); return;
+    showBookingMessage("Quelques informations manquent", "Complète la date, l’heure et tes coordonnées, puis ajoute la capture du paiement pour envoyer ta demande."); return;
+  }
+  if(isRefill && !refillPhoto){
+    showBookingMessage("Photo des cils nécessaire", "Ajoute une photo nette de tes cils actuels pour demander un remplissage."); return;
+  }
+  if(isRefill && !refillConfirmationInput.checked){
+    showBookingMessage("Vérifie tes extensions", "Pour un remplissage, il doit rester au moins 50 % de tes extensions. Coche la confirmation si c’est bien le cas."); return;
+  }
+  if(isRefill && (!['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(refillPhoto.type) || refillPhoto.size > 5 * 1024 * 1024)){
+    showBookingMessage("Format de photo non accepté", "Choisis une photo JPG, PNG, WEBP ou HEIC de 5 Mo maximum."); return;
   }
   btn.disabled = true; btn.textContent = "Envoi en cours...";
   try{
@@ -774,32 +838,50 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   if(!horaires.ouvert || !creneauChoisi ||
     minutesDepuisMinuit(heure_rdv) < minutesDepuisMinuit(String(horaires.debut || '00:00').slice(0, 5)) ||
     minutesDepuisMinuit(heure_rdv) + creneauChoisi.duree > minutesDepuisMinuit(String(horaires.fin || '00:00').slice(0, 5))){
-    alert("Ce jour ou cet horaire n'est plus disponible. Choisis un autre créneau.");
+    showBookingMessage("Ce créneau n’est plus disponible", "Choisis un autre jour ou une autre heure pour continuer.");
     await refreshAvailableTimes();
     return;
   }
   if(heuresBloquees.has(heure_rdv)){
-    alert("Ce créneau est déjà réservé. Choisis une autre heure.");
+    showBookingMessage("Ce créneau vient d’être réservé", "Choisis une autre heure pour ta demande.");
     await refreshAvailableTimes();
     return;
   }
   const { data: bloque, error: bErr } = await sb.from('creneaux_bloques').select('*').eq('date_rdv',date_rdv).eq('heure_rdv',heure_rdv);
-  if(bErr){ alert("Erreur vérification créneau : "+bErr.message); console.error(bErr); return; }
-  if(bloque && bloque.length>0){ alert("Ce créneau est déjà réservé."); return; }
+  if(bErr){ showBookingMessage("Vérification impossible", "Une erreur est survenue pendant la vérification du créneau : "+bErr.message); console.error(bErr); return; }
+  if(bloque && bloque.length>0){ showBookingMessage("Ce créneau vient d’être réservé", "Choisis une autre heure pour ta demande."); return; }
   const cleanName = capture.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9.]/g,"_");
   const fileName = Date.now()+"_"+cleanName;
   const { error: upErr } = await sb.storage.from('paiements').upload(fileName, capture);
-  if(upErr){ alert("Erreur upload : "+upErr.message); return; }
+  if(upErr){ showBookingMessage("Envoi du paiement impossible", "La capture du paiement n’a pas pu être envoyée : "+upErr.message); return; }
   const { data: signed, error: sErr } = await sb.storage.from('paiements').createSignedUrl(fileName, 60*60*24*30);
-  if(sErr){ alert("Erreur génération URL : "+sErr.message); return; }
+  if(sErr){ showBookingMessage("Préparation du paiement impossible", "Le justificatif a été envoyé, mais son lien sécurisé n’a pas pu être créé : "+sErr.message); return; }
+  let photoRemplissagePath = "";
+  if(isRefill){
+    const cleanPhotoName = refillPhoto.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9.]/g,"_");
+    photoRemplissagePath = `remplissages/${Date.now()}_${crypto.randomUUID()}_${cleanPhotoName}`;
+    const { error: photoUploadError } = await sb.storage.from('photos-remplissage').upload(photoRemplissagePath, refillPhoto, {
+      contentType: refillPhoto.type,
+      upsert: false
+    });
+    if(photoUploadError){
+      showBookingMessage("Envoi de la photo impossible", "La photo de tes cils n’a pas pu être envoyée : "+photoUploadError.message);
+      return;
+    }
+  }
   const acompte = creneauxAcompteMajore.includes(heure_rdv)?"20€":"10€";
-  const { error } = await sb.from('reservations').insert([{
+  const reservation = {
     prestation:selectedPrestation, technicienne:BRAND, date_rdv, heure_rdv, nom, telephone, email,
     acompte, capture_paiement:capture.name, capture_url:signed.signedUrl, statut:"en attente"
-  }]);
-  if(error){ alert("Erreur : "+error.message); console.error(error); } else { confirmation(); }
+  };
+  if(isRefill) reservation.photo_remplissage_path = photoRemplissagePath;
+  const { error } = await sb.from('reservations').insert([reservation]);
+  if(error){
+    showBookingMessage("Demande non envoyée", "Une erreur est survenue lors de l’enregistrement de ta demande : "+error.message);
+    console.error(error);
+  } else { confirmation(); }
   }catch(e){
-    alert("Erreur inattendue : "+(e && e.message ? e.message : e));
+    showBookingMessage("Une erreur est survenue", e && e.message ? e.message : String(e));
     console.error(e);
   }finally{
     btn.disabled = false; btn.textContent = "Envoyer ma demande";

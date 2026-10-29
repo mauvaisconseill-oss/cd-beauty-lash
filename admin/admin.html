@@ -138,9 +138,20 @@
     </section>
   </main>
 
+  <dialog id="reset-schedule-dialog" class="admin-dialog" aria-labelledby="reset-dialog-title" aria-describedby="reset-dialog-description">
+    <span class="admin-dialog-icon" aria-hidden="true">↺</span>
+    <p class="eyebrow">Mise à jour du planning</p>
+    <h2 id="reset-dialog-title">Rétablir l’horaire habituel ?</h2>
+    <p id="reset-dialog-description">L’exception de cette journée sera supprimée et l’horaire habituel reprendra effet.</p>
+    <div class="admin-dialog-actions">
+      <button id="cancel-reset-btn" class="button button-outline" type="button">Garder cette exception</button>
+      <button id="confirm-reset-btn" class="button button-primary" type="button">Oui, rétablir</button>
+    </div>
+  </dialog>
+
   <div id="confirmation-toast" class="confirmation-toast" role="status" aria-live="polite" hidden>
     <span class="confirmation-toast-icon" aria-hidden="true">✓</span>
-    <span><strong>Modifications effectuées !</strong><br>Tes horaires ont bien été enregistrés.</span>
+    <span><strong id="confirmation-toast-title">Modifications effectuées !</strong><br><span id="confirmation-toast-description">Tes horaires ont bien été enregistrés.</span></span>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

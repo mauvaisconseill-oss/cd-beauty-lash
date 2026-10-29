@@ -143,4 +143,37 @@ create policy "planning_overrides_gestion_admin"
   using (true)
   with check (true);
 
+-- 6) PHOTOS DES CILS POUR LES REMPLISSAGES ------------------------
+-- Le bucket reste privé : seules les personnes connectées à l'admin
+-- peuvent lire les photos. Les clientes peuvent uniquement en déposer.
+alter table public.reservations
+  add column if not exists photo_remplissage_path text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'photos-remplissage',
+  'photos-remplissage',
+  false,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+)
+on conflict (id) do update
+set public = false,
+    file_size_limit = 5242880,
+    allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+drop policy if exists "photos_remplissage_depot" on storage.objects;
+create policy "photos_remplissage_depot"
+  on storage.objects for insert to anon
+  with check (
+    bucket_id = 'photos-remplissage'
+    and (storage.foldername(name))[1] = 'remplissages'
+    and lower(storage.extension(name)) in ('jpg', 'jpeg', 'png', 'webp', 'heic', 'heif')
+  );
+
+drop policy if exists "photos_remplissage_lecture_admin" on storage.objects;
+create policy "photos_remplissage_lecture_admin"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'photos-remplissage');
+
 -- ✅ Terminé. Tu peux fermer cet éditeur.

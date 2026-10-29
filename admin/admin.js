@@ -16,6 +16,9 @@ const loginError = document.getElementById("login-error");
 const reservationsList = document.getElementById("reservations-list");
 const planningMessage = document.getElementById("planning-message");
 const confirmationToast = document.getElementById("confirmation-toast");
+const confirmationToastTitle = document.getElementById("confirmation-toast-title");
+const confirmationToastDescription = document.getElementById("confirmation-toast-description");
+const resetScheduleDialog = document.getElementById("reset-schedule-dialog");
 const reservationMessage = document.getElementById("reservation-message");
 const reservationMessageIcon = document.getElementById("reservation-message-icon");
 const reservationMessageTitle = document.getElementById("reservation-message-title");
@@ -52,6 +55,7 @@ let moisAffiche = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let selectedCalendarDate = "";
 let reservationMessageTimer;
 let confirmationToastTimer;
+let pendingResetDate = "";
 
 loginForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -124,6 +128,18 @@ document.getElementById("refresh-btn").addEventListener("click", async () => {
 });
 
 document.getElementById("save-horaires-btn").addEventListener("click", saveHoraires);
+document.getElementById("cancel-reset-btn").addEventListener("click", () => resetScheduleDialog.close());
+document.getElementById("confirm-reset-btn").addEventListener("click", async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  resetScheduleDialog.close();
+  try {
+    await resetJourSemaine(pendingResetDate);
+  } finally {
+    button.disabled = false;
+    pendingResetDate = "";
+  }
+});
 document.getElementById("week-prev-btn").addEventListener("click", () => {
   semaineAffichee.setDate(semaineAffichee.getDate() - 7);
   loadSemaine();
@@ -205,7 +221,19 @@ async function loadReservations() {
     return;
   }
 
-  reservations = data || [];
+  reservations = await Promise.all((data || []).map(async reservation => {
+    if (!reservation.photo_remplissage_path) return reservation;
+
+    const { data: signedPhoto, error: photoError } = await supabaseClient
+      .storage
+      .from("photos-remplissage")
+      .createSignedUrl(reservation.photo_remplissage_path, 60 * 60);
+    if (photoError) {
+      console.error("Impossible de créer un lien sécurisé pour la photo du remplissage.", photoError);
+      return { ...reservation, photoRemplissageError: photoError.message };
+    }
+    return { ...reservation, photoRemplissageUrl: signedPhoto.signedUrl };
+  }));
   reservationsList.className = "";
   renderReservations();
   renderCalendar();
@@ -270,6 +298,21 @@ function createReservationCard(reservation) {
     link.rel = "noopener noreferrer";
     link.textContent = "Voir la capture de paiement";
     card.appendChild(link);
+  }
+
+  const refillPhotoUrl = safeHttpsUrl(reservation.photoRemplissageUrl);
+  if (refillPhotoUrl) {
+    const link = document.createElement("a");
+    link.href = refillPhotoUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Voir la photo des cils (remplissage)";
+    card.appendChild(link);
+  } else if (reservation.photoRemplissageError) {
+    const photoError = document.createElement("p");
+    photoError.className = "status-message";
+    photoError.textContent = "Photo du remplissage indisponible : " + reservation.photoRemplissageError;
+    card.appendChild(photoError);
   }
 
   const actions = document.createElement("div");
@@ -549,6 +592,16 @@ function createTimeInput(value) {
   return input;
 }
 
+function showConfirmationToast(title, description) {
+  clearTimeout(confirmationToastTimer);
+  confirmationToastTitle.textContent = title;
+  confirmationToastDescription.textContent = description;
+  confirmationToast.hidden = false;
+  confirmationToastTimer = setTimeout(() => {
+    confirmationToast.hidden = true;
+  }, 2000);
+}
+
 async function saveHoraires() {
   const nouveauxJours = {};
   for (const day of JOURS_SEMAINE) {
@@ -578,11 +631,7 @@ async function saveHoraires() {
     return;
   }
   horairesActuels = nouveauxJours;
-  clearTimeout(confirmationToastTimer);
-  confirmationToast.hidden = false;
-  confirmationToastTimer = setTimeout(() => {
-    confirmationToast.hidden = true;
-  }, 2000);
+  showConfirmationToast("Modifications effectuées !", "Tes horaires ont bien été enregistrés.");
   await loadSemaine();
 }
 
@@ -697,7 +746,10 @@ function renderSemaineJours(startOfWeek, overrides) {
       reset.type = "button";
       reset.className = "btn-reset-jour";
       reset.textContent = "Revenir à l'horaire habituel";
-      reset.addEventListener("click", () => resetJourSemaine(isoDate));
+      reset.addEventListener("click", () => {
+        pendingResetDate = isoDate;
+        resetScheduleDialog.showModal();
+      });
       row.appendChild(reset);
     }
 
@@ -734,14 +786,13 @@ async function saveWeekOverride(date, row) {
 }
 
 async function resetJourSemaine(date) {
-  if (!confirm("Revenir à l'horaire habituel pour ce jour ?")) return;
   const { error } = await supabaseClient.from("planning_overrides").delete().eq("date", date);
   if (error) {
     planningMessage.textContent = "Erreur lors du rétablissement de l'horaire habituel : " + error.message;
     return;
   }
-  planningMessage.textContent = "Horaire habituel rétabli pour le " + formatDate(date) + ".";
   await loadSemaine();
+  showConfirmationToast("Horaire rétabli !", `L’horaire habituel est de retour pour le ${formatDate(date)}.`);
 }
 
 function renderCalendar() {
