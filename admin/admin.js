@@ -408,7 +408,9 @@ async function loadPlanning() {
     .maybeSingle();
 
   if (error) {
-    planningMessage.textContent = "Affichage des horaires par défaut. Exécute le script SQL Supabase pour enregistrer et appliquer tes disponibilités aux réservations.";
+    planningMessage.textContent = error.code === "PGRST205" && error.message.includes("planning_config")
+      ? "La table des horaires manque dans Supabase. Dans le projet relié au site, exécute configuration-supabase.sql (section 5), puis recharge la page."
+      : "Affichage des horaires par défaut. Exécute le script SQL Supabase pour enregistrer et appliquer tes disponibilités aux réservations.";
     console.error("Chargement de la configuration du planning impossible.", error);
     await loadSemaine();
     return;

@@ -37,6 +37,10 @@ avis clientes et réservation. Voici comment le mettre en ligne, dans l'ordre.
 et les tables du planning (`planning_config` et `planning_overrides`). Si le script a
 déjà été exécuté, tu peux le relancer : il conserve les horaires existants.
 
+Si le site affiche que la table `planning_config` est introuvable, vérifie que tu as
+exécuté ce script dans le projet Supabase relié au site. Si tu viens de le faire,
+attends quelques instants puis recharge la page.
+
 ---
 
 ## Étape 3 — Ajouter tes photos de portfolio

@@ -689,7 +689,12 @@ async function getAvailabilityForDate(date){
     sb.from('planning_config').select('jours').eq('id', 1).maybeSingle(),
     sb.from('planning_overrides').select('ouvert, debut, fin').eq('date', date).maybeSingle()
   ]);
-  if(configError) throw new Error("Impossible de vérifier les horaires : " + configError.message);
+  if(configError){
+    if(configError.code === 'PGRST205' && configError.message.includes('planning_config')){
+      throw new Error("Les horaires ne sont pas encore configurés. Dans le projet Supabase relié au site, exécute configuration-supabase.sql (section 5), puis recharge la page.");
+    }
+    throw new Error("Impossible de vérifier les horaires : " + configError.message);
+  }
   if(overrideError) throw new Error("Impossible de vérifier les changements du planning : " + overrideError.message);
   if(!config || !config.jours) throw new Error("Le planning n'est pas encore configuré.");
 
