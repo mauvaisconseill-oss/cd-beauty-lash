@@ -109,6 +109,7 @@ label.field{display:block;font-weight:600;font-size:13px;color:var(--rose-deep);
 footer{text-align:center;margin-top:50px;color:var(--muted);font-size:13px;}
 footer .socials{margin-bottom:14px;}
 footer a.admin{color:var(--muted);text-decoration:underline;font-size:12px;}
+footer .legal-link{display:inline-block;margin-top:10px;color:var(--muted);text-decoration:underline;font-size:12px;}
 
 .confirmation-overlay{position:fixed;inset:0;background:rgba(64,32,47,.6);z-index:120;display:grid;place-items:center;padding:24px;animation:fade .25s ease;}
 .confirmation-card{background:#fff;border-radius:24px;padding:34px 26px;max-width:380px;text-align:center;box-shadow:var(--shadow);}
@@ -122,6 +123,7 @@ footer a.admin{color:var(--muted);text-decoration:underline;font-size:12px;}
 .booking-message-dialog.error .booking-message-icon{background:#F8EAE5;border-color:#EED5CB;color:#9B5746;}
 .booking-message-dialog h2{margin:0 0 8px;font-family:'Fraunces',serif!important;font-size:25px;font-weight:500;}
 .booking-message-dialog p{margin:0;color:#70665C;font-size:14px;line-height:1.6;overflow-wrap:anywhere;}
+.booking-message-dialog .booking-message-payment-note{margin-top:12px;padding:10px 12px;border:1px solid #E8DED2;border-radius:8px;background:rgba(248,244,238,.8);font-size:12px;}
 .booking-message-dialog .confirmation-close-btn{min-width:130px;margin-top:22px;border-radius:8px;background:#302923;color:#FBF8F3;}
 .booking-message-dialog .confirmation-close-btn:hover{background:#514236;}
 @media(max-width:559px){.booking-message-dialog{padding:26px 20px;}}
@@ -499,7 +501,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
       <a href="https://paypal.me/cdbeautylash/10" target="_blank" class="btn-ghost" id="paypal_link">Payer l'acompte de 10€ (PayPal)</a>
 
       <label class="upload-box">📎 Ajoute la capture du paiement
-        <input type="file" id="capture_paiement" accept="image/*">
+        <input type="file" id="capture_paiement" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
       </label>
 
       <div id="refill-photo-fields" class="refill-photo-fields" hidden>
@@ -533,6 +535,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
     <span id="booking-message-icon" class="booking-message-icon" aria-hidden="true">!</span>
     <h2 id="booking-message-title"></h2>
     <p id="booking-message-description"></p>
+    <p class="booking-message-payment-note">Déjà payé sur PayPal ? Ne règle pas une seconde fois. Contacte CD Beauty Lash pour vérifier ton acompte.</p>
     <button id="booking-message-close" class="confirmation-close-btn" type="button">Compris</button>
   </dialog>
 
@@ -569,12 +572,8 @@ main.app{animation:page-enter .7s .08s ease-out both;}
       <a href="https://www.tiktok.com/@beauty.lash93?lang=fr" target="_blank" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M16.6 5.8a4.9 4.9 0 0 1-1-2.6h-3v12.2a2.4 2.4 0 1 1-2.4-2.4c.2 0 .4 0 .6.08V9.9a5.6 5.6 0 0 0-.6-.04A5.5 5.5 0 1 0 15.7 15V9.3a7.9 7.9 0 0 0 4.6 1.5V7.7a4.9 4.9 0 0 1-3.7-1.9Z"/></svg></a>
     </div>
     <p>CD Beauty Lash · Sur rendez-vous uniquement</p>
-    <div class="legal-details" id="informations-legales">
-      <details>
-        <summary>Informations légales</summary>
-        <p>Éditrice du site : [nom et prénom à compléter], exerçant sous le nom « CD Beauty Lash » · Statut : [à compléter] · Adresse professionnelle : [à compléter] · SIRET : [à compléter]. Contact : <a href="mailto:cdbeauty.lashh@gmail.com">cdbeauty.lashh@gmail.com</a>.</p>
-        <p>Hébergement : Vercel, Inc. (coordonnées complètes de l’hébergeur à ajouter avant publication).</p>
-      </details>
+    <p><a class="legal-link" href="mentions-legales.html">Mentions légales</a></p>
+    <div class="legal-details">
       <details>
         <summary>Confidentialité et données personnelles</summary>
         <p>Les données saisies lors d’une demande de rendez-vous (nom, téléphone, e-mail, créneau et justificatif de paiement) servent à gérer la réservation et à vous recontacter. Elles sont traitées par CD Beauty Lash et hébergées via Supabase. Le paiement est effectué sur PayPal, selon les conditions de ce service.</p>
@@ -622,6 +621,14 @@ const creneauxDisponibles = [
   { heure: '21:00', duree: 60, label: '21:00 – 22:00 · 20€' }
 ];
 const joursPlanning = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const imageMimeTypes = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  heic: 'image/heic',
+  heif: 'image/heif'
+};
 let selectedBase = null;
 const selectedAddons = new Set();
 let selectedPrestation = "";
@@ -724,6 +731,7 @@ updateInvoice();
 
 const dateRdvInput = document.getElementById('date_rdv');
 const heureRdvSelect = document.getElementById('heure_rdv');
+let availabilityRequestId = 0;
 const aujourdhui = new Date();
 dateRdvInput.min = `${aujourdhui.getFullYear()}-${String(aujourdhui.getMonth() + 1).padStart(2, '0')}-${String(aujourdhui.getDate()).padStart(2, '0')}`;
 dateRdvInput.addEventListener('change', refreshAvailableTimes);
@@ -731,6 +739,42 @@ dateRdvInput.addEventListener('change', refreshAvailableTimes);
 function minutesDepuisMinuit(heure){
   const [heures, minutes] = heure.split(':').map(Number);
   return heures * 60 + minutes;
+}
+
+function normalizeBookingTime(value){
+  return String(value || '').slice(0, 5);
+}
+
+function getImageMimeType(file){
+  if(['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(file.type)) return file.type;
+  const extension = file.name.split('.').pop().toLowerCase();
+  return imageMimeTypes[extension] || '';
+}
+
+function getLocalDateString(date = new Date()){
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function createUploadId(){
+  if(typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const values = new Uint32Array(4);
+  crypto.getRandomValues(values);
+  return Array.from(values, value => value.toString(16).padStart(8, '0')).join('');
+}
+
+async function removeTemporaryUploads(uploads){
+  const capturePath = uploads.find(upload => upload.bucket === 'paiements')?.path || null;
+  const refillPath = uploads.find(upload => upload.bucket === 'photos-remplissage')?.path || null;
+  if(!capturePath && !refillPath) return;
+  try{
+    const { error } = await sb.rpc('cleanup_unattached_booking_uploads', {
+      p_capture_path: capturePath,
+      p_refill_path: refillPath
+    });
+    if(error) console.error("Impossible de nettoyer les fichiers temporaires de la réservation.", error);
+  }catch(error){
+    console.error("Impossible de nettoyer les fichiers temporaires de la réservation.", error);
+  }
 }
 
 async function getAvailabilityForDate(date){
@@ -751,12 +795,10 @@ async function getAvailabilityForDate(date){
   const horaires = override || config.jours[jour];
   if(!horaires) throw new Error("Les horaires de cette journée ne sont pas configurés.");
 
-  const { data: bloques, error: bloqueError } = await sb.from('creneaux_bloques')
-    .select('heure_rdv')
-    .eq('date_rdv', date);
+  const { data: bloques, error: bloqueError } = await sb.rpc('get_unavailable_booking_times', { p_date: date });
   if(bloqueError) throw new Error("Impossible de vérifier les créneaux réservés : " + bloqueError.message);
 
-  return { horaires, heuresBloquees: new Set((bloques || []).map(item => item.heure_rdv)) };
+  return { horaires, heuresBloquees: new Set((bloques || []).map(item => normalizeBookingTime(item.heure_rdv))) };
 }
 
 function setHourOptions(options, message){
@@ -764,10 +806,14 @@ function setHourOptions(options, message){
   options.forEach(creneau => heureRdvSelect.add(new Option(creneau.label, creneau.heure)));
 }
 
-async function refreshAvailableTimes(){
+async function refreshAvailableTimes({ preserveSelection = false } = {}){
+  const requestId = ++availabilityRequestId;
   const date = dateRdvInput.value;
-  heureRdvSelect.value = '';
-  updateInvoice();
+  const selectedHour = preserveSelection ? heureRdvSelect.value : '';
+  if(!preserveSelection){
+    heureRdvSelect.value = '';
+    updateInvoice();
+  }
   if(!date){
     setHourOptions(creneauxDisponibles, 'Choisir une heure');
     heureRdvSelect.disabled = false;
@@ -778,9 +824,10 @@ async function refreshAvailableTimes(){
   setHourOptions([], 'Vérification des disponibilités…');
   try{
     const { horaires, heuresBloquees } = await getAvailabilityForDate(date);
-    if(dateRdvInput.value !== date) return;
+    if(requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
     if(!horaires.ouvert){
       setHourOptions([], 'Aucun créneau disponible (jour fermé)');
+      if(selectedHour) showBookingMessage("Ce créneau n’est plus disponible", "Choisis une autre heure pour ta demande.");
       return;
     }
 
@@ -791,15 +838,27 @@ async function refreshAvailableTimes(){
       return heure >= debut && heure + creneau.duree <= fin && !heuresBloquees.has(creneau.heure);
     });
     setHourOptions(libres, libres.length ? 'Choisir une heure' : 'Aucun créneau disponible');
+    if(selectedHour && libres.some(creneau => creneau.heure === selectedHour)){
+      heureRdvSelect.value = selectedHour;
+    }else if(selectedHour){
+      updateInvoice();
+      showBookingMessage("Ce créneau vient d’être réservé", "Choisis une autre heure pour ta demande.");
+    }
   }catch(error){
-    if(dateRdvInput.value !== date) return;
+    if(requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
     console.error(error);
     setHourOptions([], 'Disponibilités indisponibles');
     showBookingMessage("Créneaux indisponibles", error.message || "Impossible de charger les disponibilités.");
   }finally{
-    if(dateRdvInput.value === date) heureRdvSelect.disabled = false;
+    if(requestId === availabilityRequestId && dateRdvInput.value === date) heureRdvSelect.disabled = false;
   }
 }
+
+setInterval(()=>{
+  if(!document.hidden && document.getElementById('booking-form').classList.contains('show') && dateRdvInput.value){
+    refreshAvailableTimes({ preserveSelection: true });
+  }
+}, 10000);
 
 document.getElementById('heure_rdv').addEventListener('change',function(){
   const acompte = creneauxAcompteMajore.includes(this.value)?20:10;
@@ -813,14 +872,35 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   const btn = document.getElementById('submit-btn');
   const date_rdv = document.getElementById('date_rdv').value;
   const heure_rdv = document.getElementById('heure_rdv').value;
-  const nom = document.getElementById('nom').value;
-  const telephone = document.getElementById('telephone').value;
-  const email = document.getElementById('email').value;
+  const nom = document.getElementById('nom').value.trim();
+  const telephone = document.getElementById('telephone').value.trim();
+  const emailInput = document.getElementById('email');
+  const email = emailInput.value.trim();
   const capture = document.getElementById('capture_paiement').files[0];
   const isRefill = Boolean(selectedBase && selectedBase.name.startsWith('Remplissage '));
   const refillPhoto = refillPhotoInput.files[0];
+  const captureMime = capture && getImageMimeType(capture);
+  const refillPhotoMime = refillPhoto && getImageMimeType(refillPhoto);
   if(!selectedPrestation || !date_rdv || !heure_rdv || !nom || !telephone || !email || !capture){
     showBookingMessage("Quelques informations manquent", "Complète la date, l’heure et tes coordonnées, puis ajoute la capture du paiement pour envoyer ta demande."); return;
+  }
+  if(!emailInput.validity.valid){
+    showBookingMessage("Adresse e-mail invalide", "Vérifie ton adresse e-mail pour recevoir la réponse à ta demande."); return;
+  }
+  if(telephone.replace(/\D/g, '').length < 6){
+    showBookingMessage("Numéro de téléphone invalide", "Vérifie ton numéro afin que CD Beauty Lash puisse te recontacter."); return;
+  }
+  const [dateYear, dateMonth, dateDay] = date_rdv.split('-').map(Number);
+  const selectedDate = new Date(dateYear, dateMonth - 1, dateDay);
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date_rdv) &&
+    selectedDate.getFullYear() === dateYear &&
+    selectedDate.getMonth() === dateMonth - 1 &&
+    selectedDate.getDate() === dateDay;
+  if(!validDate || date_rdv < getLocalDateString()){
+    showBookingMessage("Date invalide", "Choisis une date valide à partir d’aujourd’hui."); return;
+  }
+  if(!captureMime || capture.size > 5 * 1024 * 1024){
+    showBookingMessage("Capture de paiement non acceptée", "Choisis une image JPG, PNG, WEBP ou HEIC de 5 Mo maximum."); return;
   }
   if(isRefill && !refillPhoto){
     showBookingMessage("Photo des cils nécessaire", "Ajoute une photo nette de tes cils actuels pour demander un remplissage."); return;
@@ -828,10 +908,12 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   if(isRefill && !refillConfirmationInput.checked){
     showBookingMessage("Vérifie tes extensions", "Pour un remplissage, il doit rester au moins 50 % de tes extensions. Coche la confirmation si c’est bien le cas."); return;
   }
-  if(isRefill && (!['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(refillPhoto.type) || refillPhoto.size > 5 * 1024 * 1024)){
+  if(isRefill && (!refillPhotoMime || refillPhoto.size > 5 * 1024 * 1024)){
     showBookingMessage("Format de photo non accepté", "Choisis une photo JPG, PNG, WEBP ou HEIC de 5 Mo maximum."); return;
   }
   btn.disabled = true; btn.textContent = "Envoi en cours...";
+  const uploadedFiles = [];
+  let reservationInsertStarted = false;
   try{
   const { horaires, heuresBloquees } = await getAvailabilityForDate(date_rdv);
   const creneauChoisi = creneauxDisponibles.find(creneau => creneau.heure === heure_rdv);
@@ -847,42 +929,56 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
     await refreshAvailableTimes();
     return;
   }
-  const { data: bloque, error: bErr } = await sb.from('creneaux_bloques').select('*').eq('date_rdv',date_rdv).eq('heure_rdv',heure_rdv);
-  if(bErr){ showBookingMessage("Vérification impossible", "Une erreur est survenue pendant la vérification du créneau : "+bErr.message); console.error(bErr); return; }
-  if(bloque && bloque.length>0){ showBookingMessage("Ce créneau vient d’être réservé", "Choisis une autre heure pour ta demande."); return; }
   const cleanName = capture.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9.]/g,"_");
-  const fileName = Date.now()+"_"+cleanName;
-  const { error: upErr } = await sb.storage.from('paiements').upload(fileName, capture);
+  const fileName = `reservations/${Date.now()}_${createUploadId()}_${cleanName}`;
+  const { error: upErr } = await sb.storage.from('paiements').upload(fileName, capture, { contentType: captureMime, upsert: false });
   if(upErr){ showBookingMessage("Envoi du paiement impossible", "La capture du paiement n’a pas pu être envoyée : "+upErr.message); return; }
-  const { data: signed, error: sErr } = await sb.storage.from('paiements').createSignedUrl(fileName, 60*60*24*30);
-  if(sErr){ showBookingMessage("Préparation du paiement impossible", "Le justificatif a été envoyé, mais son lien sécurisé n’a pas pu être créé : "+sErr.message); return; }
+  uploadedFiles.push({ bucket: 'paiements', path: fileName });
   let photoRemplissagePath = "";
   if(isRefill){
     const cleanPhotoName = refillPhoto.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9.]/g,"_");
-    photoRemplissagePath = `remplissages/${Date.now()}_${crypto.randomUUID()}_${cleanPhotoName}`;
+    photoRemplissagePath = `remplissages/${Date.now()}_${createUploadId()}_${cleanPhotoName}`;
     const { error: photoUploadError } = await sb.storage.from('photos-remplissage').upload(photoRemplissagePath, refillPhoto, {
-      contentType: refillPhoto.type,
+      contentType: refillPhotoMime,
       upsert: false
     });
     if(photoUploadError){
+      await removeTemporaryUploads(uploadedFiles);
       showBookingMessage("Envoi de la photo impossible", "La photo de tes cils n’a pas pu être envoyée : "+photoUploadError.message);
       return;
     }
+    uploadedFiles.push({ bucket: 'photos-remplissage', path: photoRemplissagePath });
   }
   const acompte = creneauxAcompteMajore.includes(heure_rdv)?"20€":"10€";
   const reservation = {
     prestation:selectedPrestation, technicienne:BRAND, date_rdv, heure_rdv, nom, telephone, email,
-    acompte, capture_paiement:capture.name, capture_url:signed.signedUrl, statut:"en attente"
+    acompte, capture_paiement:capture.name, capture_url:"", capture_paiement_path:fileName, statut:"en attente"
   };
   if(isRefill) reservation.photo_remplissage_path = photoRemplissagePath;
+  reservationInsertStarted = true;
   const { error } = await sb.from('reservations').insert([reservation]);
+  reservationInsertStarted = false;
   if(error){
-    showBookingMessage("Demande non envoyée", "Une erreur est survenue lors de l’enregistrement de ta demande : "+error.message);
+    await removeTemporaryUploads(uploadedFiles);
+    if(error.code === '23505'){
+      showBookingMessage("Ce créneau vient d’être réservé", "Une autre cliente vient de réserver cette heure. Contacte CD Beauty Lash pour choisir une solution.");
+    }else{
+      showBookingMessage("Demande non envoyée", "Une erreur est survenue lors de l’enregistrement de ta demande : "+error.message);
+    }
     console.error(error);
-  } else { confirmation(); }
+  } else {
+    uploadedFiles.length = 0;
+    confirmation();
+  }
   }catch(e){
-    showBookingMessage("Une erreur est survenue", e && e.message ? e.message : String(e));
-    console.error(e);
+    if(reservationInsertStarted){
+      console.error("La réponse de création de réservation n'a pas été reçue ; les fichiers sont conservés pour ne pas supprimer une demande potentiellement enregistrée.", e);
+      showBookingMessage("Confirmation en attente", "Nous n’avons pas reçu la confirmation de l’enregistrement. Contacte CD Beauty Lash avant de renvoyer la demande, pour éviter un doublon.");
+    }else{
+      await removeTemporaryUploads(uploadedFiles);
+      showBookingMessage("Une erreur est survenue", e && e.message ? e.message : String(e));
+      console.error(e);
+    }
   }finally{
     btn.disabled = false; btn.textContent = "Envoyer ma demande";
   }

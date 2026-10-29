@@ -27,19 +27,51 @@ avis clientes et réservation. Voici comment le mettre en ligne, dans l'ordre.
 
 ---
 
-## Étape 2 — Configurer Supabase (avis + portfolio + planning)
+## Étape 2 — Configurer Supabase (avis + portfolio + planning + réservations)
 
 1. Va sur **supabase.com** → ton projet → menu **SQL Editor** → **New query**.
 2. Ouvre le fichier `configuration-supabase.sql`, copie **tout** son contenu, colle-le.
 3. Clique **Run**.
 
-Ça crée la table des avis, les deux casiers de stockage (`portfolio` et `paiements`),
-et les tables du planning (`planning_config` et `planning_overrides`). Si le script a
-déjà été exécuté, tu peux le relancer : il conserve les horaires existants.
+Ça crée la table des avis, les casiers de stockage (`portfolio`, `paiements` et les
+photos privées des remplissages), ainsi que les tables du planning (`planning_config`
+et `planning_overrides`). Les créneaux occupés comprennent les rendez-vous bloqués et
+toutes les demandes qui ne sont pas refusées : dès qu'une réservation est enregistrée,
+son heure disparaît des disponibilités. Le site actualise aussi les heures ouvertes
+pendant qu'une cliente remplit le formulaire, et la base empêche les doubles demandes
+simultanées sur le même créneau. Après la dernière étape de déploiement ci-dessous, seuls
+les comptes admin connectés peuvent lire les captures de paiement.
+Si le script a déjà été exécuté, tu peux le relancer : il conserve les horaires existants
+et met à jour la policy d'envoi des photos de remplissage.
+
+La table `reservations` et la table `creneaux_bloques` doivent déjà exister dans ce
+projet Supabase. Si la création de l'index unique signale des doublons, vérifie les
+demandes qui ont le même jour et la même heure avant de relancer le script : ne supprime
+pas de demande sans confirmer qu'elle est réellement en double.
+
+Pour éviter une interruption pendant la mise à jour : exécute d'abord le SQL, publie
+ensuite le nouveau site, puis vérifie qu'une réservation test fonctionne. Enfin,
+retourne dans Supabase et exécute séparément la dernière commande commentée de la section
+6 (`drop policy ... "paiements_lecture"`). Elle retire l'ancien accès public aux captures
+de paiement ; ne l'exécute pas avant que le nouveau site soit publié.
 
 Si le site affiche que la table `planning_config` est introuvable, vérifie que tu as
 exécuté ce script dans le projet Supabase relié au site. Si tu viens de le faire,
 attends quelques instants puis recharge la page.
+
+Si l'envoi d'une photo de remplissage affiche « new row violates row-level security
+policy », relance le script SQL complet sur le bon projet Supabase afin de recréer la
+policy de dépôt. Les policies autorisent les dépôts des rôles anon et authenticated,
+ce qui évite l'échec si une session admin est déjà ouverte dans le navigateur. Si
+l'erreur persiste, vérifie les policies Storage de `storage.objects` dans l'éditeur
+SQL et assure-toi qu'aucune policy restrictive préexistante ne bloque les dépôts.
+Vérifie aussi que le bucket `photos-remplissage` existe et que les tables `reservations`
+et `creneaux_bloques` utilisées par ce projet sont bien celles du site.
+
+Le lien « Mentions légales » du pied de page ouvre `mentions-legales.html`. Avant de
+publier le site, complète sur cette page le statut juridique, l'adresse professionnelle
+et les coordonnées complètes de l'hébergeur. Ne publie pas de numéro de sécurité sociale :
+il ne doit pas figurer dans les mentions légales publiques.
 
 ---
 

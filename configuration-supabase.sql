@@ -28,14 +28,15 @@ create policy "avis_ajout_public"
 
 -- 2) LES DEUX "CASIERS" DE STOCKAGE -------------------------------
 -- portfolio = public (les photos s'affichent sur le site)
--- paiements = privé (captures de paiement, liens sécurisés)
+-- paiements = privé ; l'ancienne lecture publique est conservée pendant
+-- le déploiement, puis retirée avec la commande commentée en fin de script.
 insert into storage.buckets (id, name, public)
 values ('portfolio','portfolio', true)
 on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public)
 values ('paiements','paiements', false)
-on conflict (id) do nothing;
+on conflict (id) do update set public = false;
 
 -- 3) AUTORISATIONS DE STOCKAGE ------------------------------------
 drop policy if exists "portfolio_lecture" on storage.objects;
@@ -45,12 +46,15 @@ create policy "portfolio_lecture"
 
 drop policy if exists "paiements_depot" on storage.objects;
 create policy "paiements_depot"
-  on storage.objects for insert to anon
-  with check (bucket_id = 'paiements');
+  on storage.objects for insert to anon, authenticated
+  with check (
+    bucket_id = 'paiements'
+    and (storage.foldername(name))[1] = 'reservations'
+  );
 
-drop policy if exists "paiements_lecture" on storage.objects;
-create policy "paiements_lecture"
-  on storage.objects for select to anon
+drop policy if exists "paiements_lecture_admin" on storage.objects;
+create policy "paiements_lecture_admin"
+  on storage.objects for select to authenticated
   using (bucket_id = 'paiements');
 
 -- 4) AUTORISER L'ENVOI D'UNE RÉSERVATION --------------------------
@@ -147,7 +151,8 @@ create policy "planning_overrides_gestion_admin"
 -- Le bucket reste privé : seules les personnes connectées à l'admin
 -- peuvent lire les photos. Les clientes peuvent uniquement en déposer.
 alter table public.reservations
-  add column if not exists photo_remplissage_path text;
+  add column if not exists photo_remplissage_path text,
+  add column if not exists capture_paiement_path text;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -164,16 +169,90 @@ set public = false,
 
 drop policy if exists "photos_remplissage_depot" on storage.objects;
 create policy "photos_remplissage_depot"
-  on storage.objects for insert to anon
+  on storage.objects for insert to anon, authenticated
   with check (
     bucket_id = 'photos-remplissage'
     and (storage.foldername(name))[1] = 'remplissages'
-    and lower(storage.extension(name)) in ('jpg', 'jpeg', 'png', 'webp', 'heic', 'heif')
   );
 
 drop policy if exists "photos_remplissage_lecture_admin" on storage.objects;
 create policy "photos_remplissage_lecture_admin"
   on storage.objects for select to authenticated
   using (bucket_id = 'photos-remplissage');
+
+-- Une seule demande active par créneau, même si plusieurs clientes
+-- valident exactement au même moment. Les demandes refusées libèrent le créneau.
+-- En cas d'échec, vérifier et traiter les doublons avant de relancer :
+-- select date_rdv, heure_rdv, count(*) from public.reservations
+-- where statut is distinct from 'refusé'
+-- group by date_rdv, heure_rdv having count(*) > 1;
+create unique index if not exists reservations_creneau_actif_unique
+  on public.reservations (date_rdv, heure_rdv)
+  where statut is distinct from 'refusé'
+    and date_rdv is not null
+    and heure_rdv is not null;
+
+-- Retourne uniquement les heures occupées, sans exposer les données clientes.
+-- Les demandes en attente bloquent immédiatement leur créneau.
+create or replace function public.get_unavailable_booking_times(p_date date)
+returns table (heure_rdv text)
+language sql
+stable
+security definer
+set search_path = pg_catalog, public
+as $$
+  select occupied.heure_rdv::text
+  from (
+    select cb.heure_rdv
+    from public.creneaux_bloques cb
+    where cb.date_rdv = p_date
+    union
+    select r.heure_rdv
+    from public.reservations r
+    where r.date_rdv = p_date
+      and r.statut is distinct from 'refusé'
+  ) occupied
+  where occupied.heure_rdv is not null;
+$$;
+
+revoke all on function public.get_unavailable_booking_times(date) from public;
+grant execute on function public.get_unavailable_booking_times(date) to anon, authenticated;
+
+create or replace function public.cleanup_unattached_booking_uploads(
+  p_capture_path text,
+  p_refill_path text
+)
+returns void
+language plpgsql
+security definer
+set search_path = pg_catalog, public, storage
+as $$
+begin
+  if p_capture_path like 'reservations/%'
+    and not exists (
+      select 1 from public.reservations
+      where capture_paiement_path = p_capture_path
+    ) then
+    delete from storage.objects
+    where bucket_id = 'paiements' and name = p_capture_path;
+  end if;
+
+  if p_refill_path like 'remplissages/%'
+    and not exists (
+      select 1 from public.reservations
+      where photo_remplissage_path = p_refill_path
+    ) then
+    delete from storage.objects
+    where bucket_id = 'photos-remplissage' and name = p_refill_path;
+  end if;
+end;
+$$;
+
+revoke all on function public.cleanup_unattached_booking_uploads(text, text) from public;
+grant execute on function public.cleanup_unattached_booking_uploads(text, text) to anon, authenticated;
+
+-- Après la mise en ligne et le test du nouveau site, exécuter séparément :
+-- drop policy if exists "paiements_lecture" on storage.objects;
+-- Cette étape retire l'ancien accès public aux captures de paiement.
 
 -- ✅ Terminé. Tu peux fermer cet éditeur.

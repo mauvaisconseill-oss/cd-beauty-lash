@@ -222,17 +222,27 @@ async function loadReservations() {
   }
 
   reservations = await Promise.all((data || []).map(async reservation => {
-    if (!reservation.photo_remplissage_path) return reservation;
+    const capturePath = reservation.capture_paiement_path ||
+      getStorageObjectPath(reservation.capture_url, "paiements");
+    const [captureResult, photoResult] = await Promise.all([
+      capturePath
+        ? supabaseClient.storage.from("paiements").createSignedUrl(capturePath, 60 * 60)
+        : Promise.resolve({ data: null, error: null }),
+      reservation.photo_remplissage_path
+        ? supabaseClient.storage.from("photos-remplissage").createSignedUrl(reservation.photo_remplissage_path, 60 * 60)
+        : Promise.resolve({ data: null, error: null })
+    ]);
 
-    const { data: signedPhoto, error: photoError } = await supabaseClient
-      .storage
-      .from("photos-remplissage")
-      .createSignedUrl(reservation.photo_remplissage_path, 60 * 60);
-    if (photoError) {
-      console.error("Impossible de créer un lien sécurisé pour la photo du remplissage.", photoError);
-      return { ...reservation, photoRemplissageError: photoError.message };
-    }
-    return { ...reservation, photoRemplissageUrl: signedPhoto.signedUrl };
+    if (captureResult.error) console.error("Impossible de créer un lien sécurisé pour la capture du paiement.", captureResult.error);
+    if (photoResult.error) console.error("Impossible de créer un lien sécurisé pour la photo du remplissage.", photoResult.error);
+
+    return {
+      ...reservation,
+      captureUrl: captureResult.data ? captureResult.data.signedUrl : reservation.capture_url,
+      captureError: captureResult.error ? captureResult.error.message : "",
+      photoRemplissageUrl: photoResult.data ? photoResult.data.signedUrl : "",
+      photoRemplissageError: photoResult.error ? photoResult.error.message : ""
+    };
   }));
   reservationsList.className = "";
   renderReservations();
@@ -290,7 +300,7 @@ function createReservationCard(reservation) {
     card.appendChild(paragraph);
   });
 
-  const captureUrl = safeHttpsUrl(reservation.capture_url);
+  const captureUrl = safeHttpsUrl(reservation.captureUrl);
   if (captureUrl) {
     const link = document.createElement("a");
     link.href = captureUrl;
@@ -298,6 +308,11 @@ function createReservationCard(reservation) {
     link.rel = "noopener noreferrer";
     link.textContent = "Voir la capture de paiement";
     card.appendChild(link);
+  } else if (reservation.captureError) {
+    const captureError = document.createElement("p");
+    captureError.className = "status-message";
+    captureError.textContent = "Capture de paiement indisponible : " + reservation.captureError;
+    card.appendChild(captureError);
   }
 
   const refillPhotoUrl = safeHttpsUrl(reservation.photoRemplissageUrl);
@@ -498,6 +513,19 @@ function safeHttpsUrl(value) {
   try {
     const url = new URL(value);
     return url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function getStorageObjectPath(signedUrl, bucket) {
+  if (!signedUrl) return "";
+  try {
+    const url = new URL(signedUrl);
+    const supabaseOrigin = new URL(SUPABASE_URL).origin;
+    const prefix = `/storage/v1/object/sign/${bucket}/`;
+    if (url.protocol !== "https:" || url.origin !== supabaseOrigin || !url.pathname.startsWith(prefix)) return "";
+    return decodeURIComponent(url.pathname.slice(prefix.length));
   } catch {
     return "";
   }
