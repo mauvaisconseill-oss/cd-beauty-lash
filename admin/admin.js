@@ -809,8 +809,8 @@ async function saveWeekOverride(date, row) {
     planningMessage.textContent = "Erreur lors de l'enregistrement de ce jour : " + error.message;
     return;
   }
-  planningMessage.textContent = "Modification enregistrée pour le " + formatDate(date) + ".";
   await loadSemaine();
+  showConfirmationToast("Modification effectuée !", `Les horaires du ${formatDate(date)} ont bien été enregistrés.`);
 }
 
 async function resetJourSemaine(date) {
