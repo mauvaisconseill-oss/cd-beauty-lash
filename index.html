@@ -573,18 +573,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
     </div>
     <p>CD Beauty Lash · Sur rendez-vous uniquement</p>
     <p><a class="legal-link" href="mentions-legales.html">Mentions légales</a></p>
-    <div class="legal-details">
-      <details>
-        <summary>Confidentialité et données personnelles</summary>
-        <p>Les données saisies lors d’une demande de rendez-vous (nom, téléphone, e-mail, créneau et justificatif de paiement) servent à gérer la réservation et à vous recontacter. Elles sont traitées par CD Beauty Lash et hébergées via Supabase. Le paiement est effectué sur PayPal, selon les conditions de ce service.</p>
-        <p>Les avis transmis peuvent être affichés publiquement avec le prénom, la note et le commentaire. N’indiquez pas de donnée sensible dans un avis. Les durées de conservation doivent être précisées par la responsable du site.</p>
-        <p>Pour demander l’accès, la rectification ou l’effacement de vos données, écrivez à <a href="mailto:cdbeauty.lashh@gmail.com">cdbeauty.lashh@gmail.com</a>. Vous pouvez également saisir la CNIL. Les éventuels transferts hors de l’Union européenne et leurs garanties sont à vérifier auprès des prestataires utilisés.</p>
-      </details>
-      <details>
-        <summary>Réservation et médiation</summary>
-        <p>Les prestations et tarifs affichés sur cette page sont ceux proposés par CD Beauty Lash. Les conditions complètes de vente, d’annulation et de remboursement, ainsi que les coordonnées du médiateur de la consommation compétent, sont à compléter et à communiquer aux clientes avant la réservation.</p>
-      </details>
-    </div>
+    <p><a class="legal-link" href="confidentialite.html">Confidentialité et réservations</a></p>
   </footer>
 </main>
 
@@ -984,6 +973,7 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
 });
 
 function confirmation(){
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('booking-step-details').classList.remove('active');
   document.getElementById('booking-step-details').removeAttribute('aria-current');
   document.getElementById('booking-step-confirmation').classList.add('active');
