@@ -77,6 +77,7 @@ section{margin-top:40px;}
 
 input,select,textarea{width:100%;padding:14px 15px;border:1.5px solid var(--rose-soft);border-radius:13px;font-size:15px;background:#fff;color:var(--plum);margin-bottom:12px;outline:none;transition:border-color .15s ease;}
 input:focus,select:focus,textarea:focus{border-color:var(--rose);}
+#booking-form>input:not([type="file"]),#booking-form>select{height:52px;min-height:52px;box-sizing:border-box;font-size:16px;}
 textarea{min-height:90px;resize:vertical;}
 label.field{display:block;font-weight:600;font-size:13px;color:var(--rose-deep);margin-bottom:7px;}
 .btn-rose{width:100%;background:var(--rose);color:#fff;border:none;padding:15px;border-radius:14px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .15s ease, background .15s ease;}
@@ -478,7 +479,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
       <div class="selected-badge" id="selected-badge">Prestation choisie</div>
 
       <label class="field">Date du rendez-vous</label>
-      <input type="text" id="date_rdv" placeholder="jj/mm/aaaa" onfocus="(this.type='date')" onblur="if(!this.value){this.type='text'}">
+      <input type="date" id="date_rdv">
 
       <label class="field">Heure</label>
       <select id="heure_rdv">
