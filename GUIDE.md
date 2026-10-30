@@ -68,10 +68,11 @@ SQL et assure-toi qu'aucune policy restrictive préexistante ne bloque les dép�
 Vérifie aussi que le bucket `photos-remplissage` existe et que les tables `reservations`
 et `creneaux_bloques` utilisées par ce projet sont bien celles du site.
 
-Le lien « Mentions légales » du pied de page ouvre `mentions-legales.html`. Avant de
-publier le site, complète sur cette page le statut juridique, l'adresse professionnelle
-et les coordonnées complètes de l'hébergeur. Ne publie pas de numéro de sécurité sociale :
-il ne doit pas figurer dans les mentions légales publiques.
+Le lien « Mentions légales » du pied de page ouvre `mentions-legales.html`. Le statut
+est indiqué comme micro-entrepreneuse (entreprise individuelle) et l'adresse
+professionnelle communiquée y figure. Vérifie l'adresse officielle de Vercel dans ses
+conditions et sa page de contact liées sur la page légale. Ne publie pas de numéro de
+sécurité sociale : il ne doit pas figurer dans les mentions légales publiques.
 
 ---
 
