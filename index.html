@@ -377,8 +377,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
     <div class="grid2">
       <div class="card">
         <div class="mini-title">Business<b>Hours</b></div>
-        <div class="line-box">Lundi – Samedi<br>08:00 – 22:00</div>
-        <div class="line-box">Dimanche<br>Fermé</div>
+        <div class="line-box">Horaires variables<br>Selon les créneaux disponibles à la réservation</div>
       </div>
       <div class="card">
         <div class="mini-title">Contacts<b>Infos</b></div>
@@ -393,7 +392,7 @@ main.app{animation:page-enter .7s .08s ease-out both;}
     <div class="pol-grid">
       <div class="pol dore">
         <h4>Réservation &amp; informations</h4>
-        <p>En journée, l'acompte PayPal est de 10€. Pour les créneaux du matin (08:00 et 09:30) et du soir (à partir de 19:00), le paiement PayPal est de 20€ : 10€ d'acompte et 10€ de supplément horaire.</p>
+        <p>En journée, l'acompte PayPal est de 10€. Pour les créneaux du soir à 19:00 et 20:00, le paiement PayPal est de 20€ : 10€ d'acompte et 10€ de supplément horaire.</p>
         <p>Une capture d'écran du paiement devra être envoyée sur Instagram pour valider définitivement votre créneau.</p>
       </div>
       <div class="pol">
@@ -484,15 +483,13 @@ main.app{animation:page-enter .7s .08s ease-out both;}
       <label class="field">Heure</label>
       <select id="heure_rdv">
         <option value="">Choisir une heure</option>
-        <option value="08:00">08:00 – 09:30 · 20€</option>
-        <option value="09:30">09:30 – 11:00 · 20€</option>
-        <option value="11:00">11:00 – 12:30</option>
-        <option value="14:00">14:00 – 15:30</option>
-        <option value="15:30">15:30 – 17:00</option>
-        <option value="17:00">17:00 – 18:30</option>
-        <option value="19:00">19:00 – 20:00 · 20€</option>
-        <option value="20:00">20:00 – 21:00 · 20€</option>
-        <option value="21:00">21:00 – 22:00 · 20€</option>
+        <option value="11:00">11:00</option>
+        <option value="12:30">12:30</option>
+        <option value="14:00">14:00</option>
+        <option value="16:00">16:00</option>
+        <option value="17:30">17:30</option>
+        <option value="19:00">19:00 · 20€</option>
+        <option value="20:00">20:00 · 20€</option>
       </select>
 
       <input type="text" id="nom" placeholder="Nom Instagram">
@@ -596,18 +593,16 @@ document.querySelectorAll('.acc').forEach(btn=>{
   btn.addEventListener('click',()=>{btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');});
 });
 
-const creneauxSoir = ['19:00','20:00','21:00'];
-const creneauxAcompteMajore = ['08:00','09:30',...creneauxSoir];
+const creneauxSoir = ['19:00','20:00'];
+const creneauxAcompteMajore = creneauxSoir;
 const creneauxDisponibles = [
-  { heure: '08:00', duree: 90, label: '08:00 – 09:30 · 20€' },
-  { heure: '09:30', duree: 90, label: '09:30 – 11:00 · 20€' },
-  { heure: '11:00', duree: 90, label: '11:00 – 12:30' },
-  { heure: '14:00', duree: 90, label: '14:00 – 15:30' },
-  { heure: '15:30', duree: 90, label: '15:30 – 17:00' },
-  { heure: '17:00', duree: 90, label: '17:00 – 18:30' },
-  { heure: '19:00', duree: 60, label: '19:00 – 20:00 · 20€' },
-  { heure: '20:00', duree: 60, label: '20:00 – 21:00 · 20€' },
-  { heure: '21:00', duree: 60, label: '21:00 – 22:00 · 20€' }
+  { heure: '11:00', duree: 90, label: '11:00' },
+  { heure: '12:30', duree: 90, label: '12:30' },
+  { heure: '14:00', duree: 90, label: '14:00' },
+  { heure: '16:00', duree: 90, label: '16:00' },
+  { heure: '17:30', duree: 90, label: '17:30' },
+  { heure: '19:00', duree: 60, label: '19:00 · 20€' },
+  { heure: '20:00', duree: 60, label: '20:00 · 20€' }
 ];
 const joursPlanning = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
 const imageMimeTypes = {
@@ -648,8 +643,7 @@ function updateInvoice(){
   const heure = document.getElementById('heure_rdv').value;
   const services = selectedBase ? [selectedBase,...addons] : [];
   if(selectedBase && creneauxAcompteMajore.includes(heure)){
-    const moment = heure === '08:00' || heure === '09:30' ? 'matin' : 'soirée';
-    services.push({name:`Supplément horaire (${moment})`,price:10});
+    services.push({name:'Supplément horaire (soirée)',price:10});
   }
   const total = services.reduce((sum,service)=>sum+service.price,0);
   selectedPrestation = services.map(service=>`${service.name} (${service.price}€)`).join(' + ');

@@ -106,6 +106,10 @@ Dans **Espace gestion → Gérer mon planning**, elle peut consulter les rendez-
 mois et leurs heures, définir ses horaires habituels, fermer un jour de la semaine,
 ou modifier une date précise puis rétablir son horaire habituel. Les horaires enregistrés
 sont appliqués au formulaire public : seuls les créneaux disponibles sont proposés.
+Les heures de rendez-vous proposées sont 11 h, 12 h 30, 14 h, 16 h, 17 h 30,
+19 h et 20 h. Pour proposer toute cette liste, règle les horaires du jour de 11 h à
+21 h dans les horaires habituels ou l'exception du jour. Le formulaire masque les
+heures dont la durée dépasse l'heure de fermeture définie.
 
 Les horaires de départ reprennent l'exemple fourni : lundi, mardi, jeudi et vendredi
 de 15 h 30 à 18 h, mercredi de 12 h à 18 h, samedi de 13 h à 18 h et dimanche de
