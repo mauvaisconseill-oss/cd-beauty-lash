@@ -274,6 +274,20 @@ button { cursor: pointer; }
 .calendar-more { padding: 3px 5px; color: var(--muted); font-size: 10px; }
 .day-detail { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
 .day-detail h3 { margin-bottom: 10px; font-size: 21px; text-transform: capitalize; }
+.day-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+.day-detail-header h3 { margin: 0; }
+.day-detail-header .button-primary, .manual-form-actions .button-primary { margin: 0; border-color: var(--rose-deep); background: var(--rose-deep); }
+.day-detail-header .button-primary:hover, .manual-form-actions .button-primary:hover { border-color: #503321; background: #503321; }
+.manual-appointment-form { margin: 0 0 14px; padding: 18px; border: 1px solid #f0e5dc; border-radius: 13px; background: #fff; }
+.manual-appointment-form .eyebrow { margin-bottom: 2px; }
+.manual-form-copy { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
+.manual-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.manual-form-grid label { display: grid; gap: 5px; color: #514a4f; font-size: 12px; font-weight: 600; }
+.manual-form-grid label span { color: var(--muted); font-weight: 400; }
+.manual-form-grid input, .manual-form-grid select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--rose-soft); border-radius: 8px; background: #fff; color: inherit; }
+.manual-form-grid input:focus, .manual-form-grid select:focus { outline: 2px solid rgba(185, 130, 77, .2); border-color: var(--rose); }
+.manual-form-error { margin: 12px 0 0; color: #a64e47; font-size: 12px; }
+.manual-form-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
 .appointment-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .appointment-item:last-child { border-bottom: 0; }
 .appointment-item strong { display: block; font-size: 14px; }
@@ -303,6 +317,10 @@ button { cursor: pointer; }
   .calendar-event { padding: 2px 3px; font-size: 9px; }
   .calendar-day-head { font-size: 10px; }
   .reservation-actions .button { flex: 1; }
+  .day-detail-header { align-items: flex-start; flex-direction: column; }
+  .manual-form-grid { grid-template-columns: 1fr; }
+  .manual-form-actions { flex-direction: column-reverse; }
+  .manual-form-actions .button { width: 100%; }
 }
 
 .admin-page { width: min(1060px, 100%); padding-top: 40px; }

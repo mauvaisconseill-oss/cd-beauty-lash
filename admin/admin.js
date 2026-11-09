@@ -167,6 +167,13 @@ document.getElementById("month-today-btn").addEventListener("click", () => {
   clearCalendarSelection();
   renderCalendar();
 });
+document.getElementById("add-appointment-btn").addEventListener("click", () => {
+  const form = document.getElementById("manual-appointment-form");
+  form.hidden = false;
+  document.getElementById("manual-appointment-name").focus();
+});
+document.getElementById("cancel-appointment-btn").addEventListener("click", closeManualAppointmentForm);
+document.getElementById("manual-appointment-form").addEventListener("submit", createManualAppointment);
 
 async function checkAuth() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -883,12 +890,121 @@ function renderCalendar() {
 
 }
 
+function closeManualAppointmentForm() {
+  const form = document.getElementById("manual-appointment-form");
+  form.reset();
+  form.hidden = true;
+  document.getElementById("manual-appointment-error").hidden = true;
+}
+
+async function createManualAppointment(event) {
+  event.preventDefault();
+  const errorMessage = document.getElementById("manual-appointment-error");
+  const saveButton = document.getElementById("save-appointment-btn");
+  const date = selectedCalendarDate;
+  const time = document.getElementById("manual-appointment-time").value;
+  const name = document.getElementById("manual-appointment-name").value.trim();
+  const service = document.getElementById("manual-appointment-service").value.trim();
+  const phone = document.getElementById("manual-appointment-phone").value.trim();
+  const email = document.getElementById("manual-appointment-email").value.trim();
+
+  errorMessage.hidden = true;
+  if (!date || !time || !name || !service) {
+    errorMessage.textContent = "Renseigne le nom, la prestation et l’heure du rendez-vous.";
+    errorMessage.hidden = false;
+    return;
+  }
+
+  saveButton.disabled = true;
+  try {
+    const [reservationCheck, blockedSlotCheck] = await Promise.all([
+      supabaseClient.from("reservations")
+        .select("id, statut")
+        .eq("date_rdv", date)
+        .eq("heure_rdv", time)
+        .limit(1),
+      supabaseClient.from("creneaux_bloques")
+        .select("date_rdv")
+        .eq("date_rdv", date)
+        .eq("heure_rdv", time)
+        .limit(1)
+    ]);
+
+    if (reservationCheck.error || blockedSlotCheck.error) {
+      const error = reservationCheck.error || blockedSlotCheck.error;
+      throw new Error("Impossible de vérifier la disponibilité : " + error.message);
+    }
+    if ((reservationCheck.data || []).some(reservation => reservation.statut !== "refusé") ||
+        (blockedSlotCheck.data || []).length) {
+      errorMessage.textContent = "Ce créneau est déjà pris ou bloqué. Choisis une autre heure.";
+      errorMessage.hidden = false;
+      return;
+    }
+
+    const { data: createdReservation, error: reservationError } = await supabaseClient
+      .from("reservations")
+      .insert({
+        prestation: service,
+        technicienne: "CD Beauty Lash",
+        date_rdv: date,
+        heure_rdv: time,
+        nom: name,
+        telephone: phone,
+        email,
+        acompte: "À définir",
+        capture_paiement: "",
+        capture_url: "",
+        capture_paiement_path: null,
+        statut: "accepté"
+      })
+      .select("id")
+      .single();
+
+    if (reservationError) {
+      if (reservationError.code === "23505") {
+        errorMessage.textContent = "Ce créneau vient d’être pris. Choisis une autre heure.";
+        errorMessage.hidden = false;
+        return;
+      }
+      throw new Error("Le rendez-vous n’a pas pu être enregistré : " + reservationError.message);
+    }
+
+    const { error: blockedSlotError } = await supabaseClient.from("creneaux_bloques").insert({
+      date_rdv: date,
+      heure_rdv: time
+    });
+    if (blockedSlotError) {
+      const { error: rollbackError } = await supabaseClient
+        .from("reservations")
+        .delete()
+        .eq("id", createdReservation.id);
+      let rollbackMessage = "Le rendez-vous n’a pas été conservé.";
+      if (rollbackError) {
+        console.error("Impossible d’annuler le rendez-vous après l’échec du blocage du créneau.", rollbackError);
+        rollbackMessage = "La suppression du rendez-vous enregistré a aussi échoué. Vérifie le calendrier avant de réessayer.";
+      }
+      throw new Error(`Le créneau n’a pas pu être bloqué : ${blockedSlotError.message} ${rollbackMessage}`);
+    }
+
+    closeManualAppointmentForm();
+    await refreshAllData();
+    showConfirmationToast("Rendez-vous ajouté", `Le rendez-vous de ${name} est confirmé pour ${formatDate(date)} à ${time}.`);
+  } catch (error) {
+    console.error("Création manuelle du rendez-vous impossible.", error);
+    errorMessage.textContent = error.message || "Une erreur est survenue pendant l’enregistrement.";
+    errorMessage.hidden = false;
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
 function clearCalendarSelection() {
   selectedCalendarDate = "";
   document.getElementById("day-detail").hidden = true;
 }
 
 function showDayDetail(date, scroll = true) {
+  closeManualAppointmentForm();
   selectedCalendarDate = date;
   const detail = document.getElementById("day-detail");
   detail.hidden = false;

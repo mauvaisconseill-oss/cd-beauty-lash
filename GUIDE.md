@@ -106,6 +106,10 @@ Dans **Espace gestion → Gérer mon planning**, elle peut consulter les rendez-
 mois et leurs heures, définir ses horaires habituels, fermer un jour de la semaine,
 ou modifier une date précise puis rétablir son horaire habituel. Les horaires enregistrés
 sont appliqués au formulaire public : seuls les créneaux disponibles sont proposés.
+Dans le calendrier, sélectionne un jour puis « Ajouter un rendez-vous » pour saisir
+une cliente, sa prestation et l’un des horaires proposés sur le site. Le rendez-vous
+est confirmé immédiatement et son créneau est aussi bloqué pour empêcher une réservation
+en ligne à la même heure.
 Les heures de rendez-vous proposées sont 11 h, 12 h 30, 14 h, 16 h, 17 h 30,
 19 h et 20 h. Pour proposer toute cette liste, règle les horaires du jour de 11 h à
 21 h dans les horaires habituels ou l'exception du jour. Le formulaire masque les

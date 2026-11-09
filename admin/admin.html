@@ -94,7 +94,45 @@
         </div>
         <div id="calendar-grid" class="calendar-grid" aria-label="Calendrier des rendez-vous"></div>
         <section id="day-detail" class="day-detail" hidden>
-          <h3 id="day-detail-title"></h3>
+          <div class="day-detail-header">
+            <h3 id="day-detail-title"></h3>
+            <button id="add-appointment-btn" class="button button-primary" type="button">+ Ajouter un rendez-vous</button>
+          </div>
+          <form id="manual-appointment-form" class="manual-appointment-form" hidden>
+            <p class="eyebrow">Nouveau rendez-vous</p>
+            <p class="manual-form-copy">Il sera confirmé immédiatement et le créneau sera bloqué pour les réservations en ligne.</p>
+            <div class="manual-form-grid">
+              <label>Nom de la cliente
+                <input id="manual-appointment-name" type="text" maxlength="120" autocomplete="name" required>
+              </label>
+              <label>Prestation
+                <input id="manual-appointment-service" type="text" maxlength="200" required>
+              </label>
+              <label>Téléphone <span>(facultatif)</span>
+                <input id="manual-appointment-phone" type="tel" maxlength="40" autocomplete="tel">
+              </label>
+              <label>E-mail <span>(facultatif)</span>
+                <input id="manual-appointment-email" type="email" maxlength="254" autocomplete="email">
+              </label>
+              <label>Heure
+                <select id="manual-appointment-time" required>
+                  <option value="">Choisir une heure</option>
+                  <option value="11:00">11:00</option>
+                  <option value="12:30">12:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="16:00">16:00</option>
+                  <option value="17:30">17:30</option>
+                  <option value="19:00">19:00</option>
+                  <option value="20:00">20:00</option>
+                </select>
+              </label>
+            </div>
+            <p id="manual-appointment-error" class="manual-form-error" role="alert" hidden></p>
+            <div class="manual-form-actions">
+              <button id="cancel-appointment-btn" class="button button-outline" type="button">Annuler</button>
+              <button id="save-appointment-btn" class="button button-primary" type="submit">Enregistrer le rendez-vous</button>
+            </div>
+          </form>
           <div id="day-detail-list"></div>
         </section>
       </section>
