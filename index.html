@@ -715,6 +715,9 @@ updateInvoice();
 const dateRdvInput = document.getElementById('date_rdv');
 const heureRdvSelect = document.getElementById('heure_rdv');
 let availabilityRequestId = 0;
+let reservationConfirmed = false;
+let reservationSubmitting = false;
+let availabilityRefreshInterval;
 const aujourdhui = new Date();
 dateRdvInput.min = `${aujourdhui.getFullYear()}-${String(aujourdhui.getMonth() + 1).padStart(2, '0')}-${String(aujourdhui.getDate()).padStart(2, '0')}`;
 dateRdvInput.addEventListener('change', refreshAvailableTimes);
@@ -790,6 +793,7 @@ function setHourOptions(options, message){
 }
 
 async function refreshAvailableTimes({ preserveSelection = false } = {}){
+  if(reservationConfirmed) return;
   const requestId = ++availabilityRequestId;
   const date = dateRdvInput.value;
   const selectedHour = preserveSelection ? heureRdvSelect.value : '';
@@ -807,7 +811,7 @@ async function refreshAvailableTimes({ preserveSelection = false } = {}){
   setHourOptions([], 'Vérification des disponibilités…');
   try{
     const { horaires, heuresBloquees } = await getAvailabilityForDate(date);
-    if(requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
+    if(reservationConfirmed || requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
     if(!horaires.ouvert){
       setHourOptions([], 'Aucun créneau disponible (jour fermé)');
       if(selectedHour) showBookingMessage("Ce créneau n’est plus disponible", "Choisis une autre heure pour ta demande.");
@@ -828,7 +832,7 @@ async function refreshAvailableTimes({ preserveSelection = false } = {}){
       showBookingMessage("Ce créneau vient d’être réservé", "Choisis une autre heure pour ta demande.");
     }
   }catch(error){
-    if(requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
+    if(reservationConfirmed || requestId !== availabilityRequestId || dateRdvInput.value !== date) return;
     console.error(error);
     setHourOptions([], 'Disponibilités indisponibles');
     showBookingMessage("Créneaux indisponibles", error.message || "Impossible de charger les disponibilités.");
@@ -837,8 +841,8 @@ async function refreshAvailableTimes({ preserveSelection = false } = {}){
   }
 }
 
-setInterval(()=>{
-  if(!document.hidden && document.getElementById('booking-form').classList.contains('show') && dateRdvInput.value){
+availabilityRefreshInterval = setInterval(()=>{
+  if(!reservationConfirmed && !reservationSubmitting && !document.hidden && document.getElementById('booking-form').classList.contains('show') && dateRdvInput.value){
     refreshAvailableTimes({ preserveSelection: true });
   }
 }, 10000);
@@ -894,6 +898,8 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
   if(isRefill && (!refillPhotoMime || refillPhoto.size > 5 * 1024 * 1024)){
     showBookingMessage("Format de photo non accepté", "Choisis une photo JPG, PNG, WEBP ou HEIC de 5 Mo maximum."); return;
   }
+  reservationSubmitting = true;
+  availabilityRequestId++;
   btn.disabled = true; btn.textContent = "Envoi en cours...";
   const uploadedFiles = [];
   let reservationInsertStarted = false;
@@ -951,6 +957,9 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
     console.error(error);
   } else {
     uploadedFiles.length = 0;
+    reservationConfirmed = true;
+    availabilityRequestId++;
+    clearInterval(availabilityRefreshInterval);
     confirmation();
   }
   }catch(e){
@@ -963,6 +972,7 @@ document.getElementById('submit-btn').addEventListener('click', async ()=>{
       console.error(e);
     }
   }finally{
+    reservationSubmitting = false;
     btn.disabled = false; btn.textContent = "Envoyer ma demande";
   }
 });
